@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"text/template"
 
 	"github.com/OxytocinGroup/theca-backend/internal/config"
@@ -10,11 +11,12 @@ import (
 )
 
 type Mail struct {
-	Name string
-	Code string
+	Email    string
+	Username string
+	Code     string
 }
 
-func (m *Mail) SendVerificationEmail(cfg config.Config, email, code string) error {
+func (m *Mail) SendVerificationEmail(cfg config.Config, email, code, username string) error {
 	t := template.New("mail.html")
 
 	t, err := t.ParseFiles("internal/api/utils/email/mail.html")
@@ -23,7 +25,7 @@ func (m *Mail) SendVerificationEmail(cfg config.Config, email, code string) erro
 	}
 
 	var tpl bytes.Buffer
-	if err := t.Execute(&tpl, Mail{Name: m.Name, Code: code}); err != nil {
+	if err := t.Execute(&tpl, Mail{Username: username, Code: code}); err != nil {
 		return err
 	}
 
@@ -33,6 +35,14 @@ func (m *Mail) SendVerificationEmail(cfg config.Config, email, code string) erro
 	message.SetHeader("Subject", "Email verification")
 	message.SetBody("text/html", tpl.String())
 
+	fmt.Println(
+		"DEBUUUUG:",
+		cfg.SMTPServer,
+		cfg.SMTPPort,
+		cfg.SMTPUsername,
+		cfg.SMTPPassword,
+		cfg.SMTPFrom,
+	)
 	d := gomail.NewDialer(
 		cfg.SMTPServer,
 		cfg.SMTPPort,

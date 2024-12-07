@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -93,7 +94,6 @@ func (cr *UserHandler) Register(c *gin.Context) {
 	user.Password = string(hashPass)
 
 	user.VerificationCode = strconv.Itoa(rand.Intn(900000) + 100000)
-	mail := utils.Mail{Name: user.Email, Code: user.VerificationCode}
 	user.IsVerified = false
 
 	if err := cr.userUseCase.Create(c, &user); err != nil {
@@ -104,11 +104,18 @@ func (cr *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if err := mail.SendVerificationEmail(config.Config{}, user.Email, user.VerificationCode); err != nil {
+	mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
+	config, err := config.LoadConfig()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "Failed to send verification email",
+			Message: "Failed to load config " + err.Error(),
 		})
+		return
+	}
+	if err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username); err != nil {
+		fmt.Println(err)
+		// #TODO LOGGER
 		return
 	}
 
