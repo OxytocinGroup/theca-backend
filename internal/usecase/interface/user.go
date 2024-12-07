@@ -1,14 +1,10 @@
 package interfaces
 
 import (
-	"context"
-
-	domain "github.com/OxytocinGroup/theca-backend/internal/domain"
+	"github.com/OxytocinGroup/theca-backend/pkg"
 )
 
 type UserUseCase interface {
-	GetByEmail(ctx context.Context, email string) (domain.User, error)
-	Create(ctx context.Context, user *domain.User) error
-	EmailExists(ctx context.Context, email string) (bool, error)
-	UsernameExists(ctx context.Context, username string) (bool, error)
+	Register(email, password, username string) pkg.Response
+	VerifyEmail(email, code string) pkg.Response
 }

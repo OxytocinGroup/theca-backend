@@ -3,7 +3,6 @@ package utils
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
 	"text/template"
 
 	"github.com/OxytocinGroup/theca-backend/internal/config"
@@ -35,14 +34,6 @@ func (m *Mail) SendVerificationEmail(cfg config.Config, email, code, username st
 	message.SetHeader("Subject", "Email verification")
 	message.SetBody("text/html", tpl.String())
 
-	fmt.Println(
-		"DEBUUUUG:",
-		cfg.SMTPServer,
-		cfg.SMTPPort,
-		cfg.SMTPUsername,
-		cfg.SMTPPassword,
-		cfg.SMTPFrom,
-	)
 	d := gomail.NewDialer(
 		cfg.SMTPServer,
 		cfg.SMTPPort,

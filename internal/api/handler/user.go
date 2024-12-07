@@ -1,17 +1,11 @@
 package handler
 
 import (
-	"fmt"
-	"math/rand"
 	"net/http"
-	"strconv"
 
-	utils "github.com/OxytocinGroup/theca-backend/internal/api/utils/email"
-	"github.com/OxytocinGroup/theca-backend/internal/config"
-	"github.com/OxytocinGroup/theca-backend/internal/domain"
 	services "github.com/OxytocinGroup/theca-backend/internal/usecase/interface"
+	"github.com/OxytocinGroup/theca-backend/pkg"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserHandler struct {
@@ -27,99 +21,53 @@ func NewUserHandler(usecase services.UserUseCase) *UserHandler {
 
 // @Register GoDoc
 // @Summary Register a new user
-// @Tags users
-// @Accept  json
-// @Produce  json
-// @Param user body domain.UserRequest true "User"
-// @Success 201 {object} domain.SuccessResponse
-// @Failure 400 {object} domain.ErrorResponse
-// @Failure 409 {object} domain.ErrorResponse
-// @Failure 500 {object} domain.ErrorResponse
-// @Router /register [post]
+// @Description Register a new user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body pkg.UserRequest true "User"
+// @Success 201 {object} pkg.Response
+// @Failure 409 {object} pkg.Response
+// @Failure 500 {object} pkg.Response
+// @Failure 400 {object} pkg.Response
+// @Router /api/users [post]
+// @Security ApiKeyAuth
 func (cr *UserHandler) Register(c *gin.Context) {
-	var userRequest domain.UserRequest
+	var userRequest pkg.UserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
-		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
 		})
 		return
 	}
-	var user domain.User
-	user.Email = userRequest.Email
-	user.Password = userRequest.Password
-	user.Username = userRequest.Username
 
-	emailExists, err := cr.userUseCase.EmailExists(c, user.Email)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to check email existence",
-		})
-		return
-	}
-	if emailExists {
-		c.JSON(http.StatusConflict, domain.ErrorResponse{
-			Code:    http.StatusConflict,
-			Message: "Email already exists",
-		})
-		return
-	}
+	resp := cr.userUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
+	c.JSON(resp.Code, resp)
+}
 
-	usernameExists, err := cr.userUseCase.UsernameExists(c, user.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to check username existence",
-		})
-		return
-	}
-	if usernameExists {
-		c.JSON(http.StatusConflict, domain.ErrorResponse{
-			Code:    http.StatusConflict,
-			Message: "Username already exists",
+// @VerifyEmail GoDoc
+// @Summary Verify email
+// @Description Verify email
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param verifyReq body pkg.VerifyRequest true "VerifyRequest"
+// @Success 200 {object} pkg.Response
+// @Failure 400 {object} pkg.Response
+// @Failure 500 {object} pkg.Response
+// @Router /api/verify-email [post]
+// @Security ApiKeyAuth
+func (cr *UserHandler) VerifyEmail(c *gin.Context) {
+	var verifyReq pkg.VerifyRequest
+	if err := c.ShouldBindJSON(&verifyReq); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.Response{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid request body",
 		})
 		return
 	}
 
-	hashPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to hash password",
-		})
-		return
-	}
-
-	user.Password = string(hashPass)
-
-	user.VerificationCode = strconv.Itoa(rand.Intn(900000) + 100000)
-	user.IsVerified = false
-
-	if err := cr.userUseCase.Create(c, &user); err != nil {
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to create user",
-		})
-		return
-	}
-
-	mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
-	config, err := config.LoadConfig()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to load config " + err.Error(),
-		})
-		return
-	}
-	if err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username); err != nil {
-		fmt.Println(err)
-		// #TODO LOGGER
-		return
-	}
-
-	c.JSON(http.StatusCreated, domain.SuccessResponse{
-		Message: "User registered successfully",
-	})
+	resp := cr.userUseCase.VerifyEmail(verifyReq.Email, verifyReq.Code)
+	c.JSON(resp.Code, resp)
 }

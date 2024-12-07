@@ -1,61 +1,105 @@
 definitions:
-  domain.ErrorResponse:
+  pkg.Response:
     properties:
       code:
         type: integer
       message:
         type: string
     type: object
-  domain.SuccessResponse:
-    properties:
-      message:
-        type: string
-    type: object
-  domain.UserRequest:
+  pkg.UserRequest:
     properties:
       email:
         type: string
       password:
         minLength: 8
         type: string
+      username:
+        minLength: 3
+        type: string
     required:
     - email
     - password
+    - username
+    type: object
+  pkg.VerifyRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+    required:
+    - code
+    - email
     type: object
 info:
   contact: {}
 paths:
-  /register:
+  /api/users:
     post:
       consumes:
       - application/json
+      description: Register a new user
       parameters:
       - description: User
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/domain.UserRequest'
+          $ref: '#/definitions/pkg.UserRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.SuccessResponse'
+            $ref: '#/definitions/pkg.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/pkg.Response'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/pkg.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - ApiKeyAuth: []
       summary: Register a new user
       tags:
-      - users
+      - User
+  /api/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Verify email
+      parameters:
+      - description: VerifyRequest
+        in: body
+        name: verifyReq
+        required: true
+        schema:
+          $ref: '#/definitions/pkg.VerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify email
+      tags:
+      - User
 swagger: "2.0"
