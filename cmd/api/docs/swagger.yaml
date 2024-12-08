@@ -1,4 +1,14 @@
 definitions:
+  pkg.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
   pkg.Response:
     properties:
       code:
@@ -34,6 +44,67 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and initiates a session by setting a session
+        cookie.
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/pkg.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: User login
+      tags:
+      - User
+  /api/logout:
+    post:
+      description: Logout a user by deleting the session and removing the session
+        cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Logout a user
+      tags:
+      - User
   /api/users:
     post:
       consumes:

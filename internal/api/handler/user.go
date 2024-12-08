@@ -122,3 +122,39 @@ func (cr *UserHandler) Login(c *gin.Context) {
 		Message: "Login successful",
 	})
 }
+
+// @Logout GoDoc
+// @Summary Logout a user
+// @Description Logout a user by deleting the session and removing the session cookie.
+// @Tags User
+// @Produce json
+// @Success 200 {object} pkg.Response
+// @Failure 401 {object} pkg.Response
+// @Failure 500 {object} pkg.Response
+// @Router /api/logout [post]
+// @Security ApiKeyAuth
+func (cr *UserHandler) Logout(c *gin.Context) {
+	sessionID, err := c.Cookie("session_id")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "Unauthorized",
+		})
+		return
+	}
+
+	if err := cr.SessionUseCase.DeleteSession(sessionID); err != nil {
+		c.JSON(http.StatusInternalServerError, pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to delete session",
+		})
+		return
+	}
+
+	c.SetCookie("session_id", "", -1, "/", "", false, true)
+	c.JSON(http.StatusOK, pkg.Response{
+		Code:    http.StatusOK,
+		Message: "Logout successful",
+	})
+
+}

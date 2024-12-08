@@ -24,6 +24,7 @@ func NewServerHTTP(userHandler *handler.UserHandler) *ServerHTTP {
 	engine.POST("/register", userHandler.Register)
 	engine.POST("/verify-email", userHandler.VerifyEmail)
 	engine.POST("/login", userHandler.Login)
+	engine.DELETE("/logout", userHandler.Logout)
 	// Auth middleware
 	api := engine.Group("/api", middleware.AuthMiddleware(userHandler.SessionUseCase))
 	api.GET("/protected", func(c *gin.Context) {
