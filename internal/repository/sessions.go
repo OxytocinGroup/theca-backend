@@ -12,8 +12,8 @@ type sessionDatabase struct {
 	DB *gorm.DB
 }
 
-func NewSessionRepository(DB *gorm.DB) interfaces.UserRepository {
-	return &userDatabase{DB}
+func NewSessionRepository(DB *gorm.DB) interfaces.SessionRepository {
+	return &sessionDatabase{DB}
 }
 
 func (s *sessionDatabase) CreateSession(sessionID string, userID uint, expiresAt time.Time) error {
@@ -22,7 +22,7 @@ func (s *sessionDatabase) CreateSession(sessionID string, userID uint, expiresAt
 		UserID:    userID,
 		ExpiresAt: expiresAt,
 	}
-	return s.DB.Create(&session).Error
+	return s.DB.Model(&domain.Session{}).Create(&session).Error
 }
 
 func (s *sessionDatabase) GetSessionByID(sessionID string) (domain.Session, error) {

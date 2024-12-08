@@ -133,3 +133,15 @@ func (c *userUseCase) VerifyEmail(email, code string) pkg.Response {
 		Message: "Email verified successfully",
 	}
 }
+
+func (c *userUseCase) Auth(username, password string) (*domain.User, error) {
+	user, err := c.userRepo.GetByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, err
+	}
+
+	return &user, err
+}

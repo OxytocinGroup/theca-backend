@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/OxytocinGroup/theca-backend/cmd/api/docs"
 	handler "github.com/OxytocinGroup/theca-backend/internal/api/handler"
+	"github.com/OxytocinGroup/theca-backend/internal/api/middleware"
 )
 
 type ServerHTTP struct {
@@ -16,19 +17,25 @@ type ServerHTTP struct {
 func NewServerHTTP(userHandler *handler.UserHandler) *ServerHTTP {
 	engine := gin.New()
 
-	// Use logger from Gin
 	engine.Use(gin.Logger())
 
-	// Swagger docs
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
-	// Request JWT
-	// engine.POST("/login", middleware.LoginHandler)
 
 	engine.POST("/register", userHandler.Register)
 	engine.POST("/verify-email", userHandler.VerifyEmail)
+	engine.POST("/login", userHandler.Login)
 	// Auth middleware
-	// api := engine.Group("/api", middleware.AuthorizationMiddleware)
+	api := engine.Group("/api", middleware.AuthMiddleware(userHandler.SessionUseCase))
+	api.GET("/protected", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(401, gin.H{
+				"message": "Unauthorized",
+			})
+			return
+		}
+		c.JSON(200, gin.H{"message": "Welcome to your profile!", "user_id": userID})
+	})
 
 	return &ServerHTTP{engine: engine}
 }

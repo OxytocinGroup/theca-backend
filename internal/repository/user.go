@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	domain "github.com/OxytocinGroup/theca-backend/internal/domain"
 	interfaces "github.com/OxytocinGroup/theca-backend/internal/repository/interface"
 	"gorm.io/gorm"
@@ -21,8 +23,13 @@ func (c *userDatabase) GetByEmail(email string) (domain.User, error) {
 	return user, err
 }
 
+func (c *userDatabase) GetByUsername(username string) (domain.User, error) {
+	var user domain.User
+	err := c.DB.Model(&domain.User{}).Where("username = ?", username).First(&user).Error
+	return user, err
+}
 func (c *userDatabase) Create(user *domain.User) error {
-	return c.DB.Create(user).Error
+	return c.DB.Model(&domain.User{}).Create(user).Error
 }
 
 func (c *userDatabase) EmailExists(email string) (bool, error) {
@@ -38,5 +45,6 @@ func (c *userDatabase) UsernameExists(username string) (bool, error) {
 }
 
 func (c *userDatabase) Update(user *domain.User) error {
-	return c.DB.Model(&domain.User{}).Save(user).Error
+	fmt.Println(user)
+	return c.DB.Model(&domain.User{}).Where("id = ?", user.ID).Save(user).Error
 }

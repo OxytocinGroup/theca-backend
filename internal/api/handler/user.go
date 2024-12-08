@@ -2,20 +2,23 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	services "github.com/OxytocinGroup/theca-backend/internal/usecase/interface"
 	"github.com/OxytocinGroup/theca-backend/pkg"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserHandler struct {
-	userUseCase services.UserUseCase
+	UserUseCase    services.UserUseCase
+	SessionUseCase services.SessionUseCase
 }
 
-// NewUserHandler returns a new UserHandler instance.
-func NewUserHandler(usecase services.UserUseCase) *UserHandler {
+func NewUserHandler(usecase services.UserUseCase, sessionUseCase services.SessionUseCase) *UserHandler {
 	return &UserHandler{
-		userUseCase: usecase,
+		UserUseCase:    usecase,
+		SessionUseCase: sessionUseCase,
 	}
 }
 
@@ -42,7 +45,7 @@ func (cr *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	resp := cr.userUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
+	resp := cr.UserUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
 	c.JSON(resp.Code, resp)
 }
 
@@ -68,6 +71,54 @@ func (cr *UserHandler) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	resp := cr.userUseCase.VerifyEmail(verifyReq.Email, verifyReq.Code)
+	resp := cr.UserUseCase.VerifyEmail(verifyReq.Email, verifyReq.Code)
 	c.JSON(resp.Code, resp)
+}
+
+// @Login GoDoc
+// @Summary User login
+// @Description Authenticates a user and initiates a session by setting a session cookie.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body pkg.LoginRequest true "User"
+// @Success 200 {object} pkg.Response
+// @Failure 400 {object} pkg.Response
+// @Failure 401 {object} pkg.Response
+// @Failure 500 {object} pkg.Response
+// @Router /api/login [post]
+// @Security ApiKeyAuth
+func (cr *UserHandler) Login(c *gin.Context) {
+	var req pkg.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.Response{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid request body",
+		})
+		return
+	}
+
+	user, err := cr.UserUseCase.Auth(req.Username, req.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, pkg.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "Invalid credentials",
+		})
+		return
+	}
+
+	sessionID := uuid.New().String()
+	if err := cr.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(24*time.Hour)); err != nil {
+		c.JSON(http.StatusInternalServerError, pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to create session" + err.Error(),
+		})
+		return
+	}
+
+	c.SetCookie("session_id", sessionID, 3600*24, "/", "", false, true)
+	c.JSON(http.StatusOK, pkg.Response{
+		Code:    http.StatusOK,
+		Message: "Login successful",
+	})
 }
