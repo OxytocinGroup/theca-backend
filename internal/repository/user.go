@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	domain "github.com/OxytocinGroup/theca-backend/internal/domain"
 	interfaces "github.com/OxytocinGroup/theca-backend/internal/repository/interface"
 	"gorm.io/gorm"
@@ -45,6 +43,5 @@ func (c *userDatabase) UsernameExists(username string) (bool, error) {
 }
 
 func (c *userDatabase) Update(user *domain.User) error {
-	fmt.Println(user)
 	return c.DB.Model(&domain.User{}).Where("id = ?", user.ID).Save(user).Error
 }

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/go-playground/validator/v10"
@@ -49,6 +48,5 @@ func LoadConfig() (Config, error) {
 	if err := validator.New().Struct(&config); err != nil {
 		return config, err
 	}
-	fmt.Println(config)
 	return config, nil
 }
