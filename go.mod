@@ -7,6 +7,7 @@ toolchain go1.23.1
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.23.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/wire v0.6.0
 	github.com/spf13/viper v1.19.0
 	github.com/swaggo/files v1.0.1
@@ -17,8 +18,6 @@ require (
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
 )
-
-require go.uber.org/zap v1.27.0
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
