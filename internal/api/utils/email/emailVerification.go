@@ -2,11 +2,11 @@ package utils
 
 import (
 	"bytes"
-	"crypto/tls"
+	"fmt"
 	"text/template"
 
 	"github.com/OxytocinGroup/theca-backend/internal/config"
-	"gopkg.in/gomail.v2"
+	"github.com/resend/resend-go/v2"
 )
 
 type Mail struct {
@@ -28,22 +28,17 @@ func (m *Mail) SendVerificationEmail(cfg *config.Config, email, code, username s
 		return err
 	}
 
-	message := gomail.NewMessage()
-	message.SetHeader("From", cfg.SMTPFrom)
-	message.SetHeader("To", email)
-	message.SetHeader("Subject", "Email verification")
-	message.SetBody("text/html", tpl.String())
+	apiKey := cfg.SMTPAPI
 
-	d := gomail.NewDialer(
-		cfg.SMTPServer,
-		cfg.SMTPPort,
-		cfg.SMTPUsername,
-		cfg.SMTPPassword,
-	)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	client := resend.NewClient(apiKey)
 
-	if err := d.DialAndSend(message); err != nil {
-		return err
+	params := &resend.SendEmailRequest{
+		From:    "Theca <no-reply@theca.oxytocingroup.com>",
+		To:      []string{email},
+		Html:    tpl.String(),
+		Subject: fmt.Sprintf("%s | Verification Code", code),
 	}
-	return nil
+
+	_, pohuy1 := client.Emails.Send(params)
+	return pohuy1
 }
