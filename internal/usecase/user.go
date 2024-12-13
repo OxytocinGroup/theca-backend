@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -37,25 +38,32 @@ func (c *userUseCase) Register(email, password, username string) pkg.Response {
 	user.Password = password
 	user.Username = username
 
-	emailExists, err := c.userRepo.EmailExists(user.Email)
-	if err != nil {
+	var emailExists, usernameExists bool
+	var emailError, usernameError error
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		emailExists, emailError = c.userRepo.EmailExists(user.Email)
+	}()
+
+	go func() {
+		defer wg.Done()
+		usernameExists, usernameError = c.userRepo.UsernameExists(user.Username)
+	}()
+
+	if emailError != nil || usernameError != nil {
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "Failed to check email existence",
+			Message: "Failed to check email or username existence",
 		}
 	}
 	if emailExists {
 		return pkg.Response{
 			Code:    http.StatusConflict,
 			Message: "Email already exists",
-		}
-	}
-
-	usernameExists, err := c.userRepo.UsernameExists(user.Username)
-	if err != nil {
-		return pkg.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to check username existence",
 		}
 	}
 	if usernameExists {
@@ -74,7 +82,6 @@ func (c *userUseCase) Register(email, password, username string) pkg.Response {
 	}
 
 	user.Password = string(hashPass)
-
 	user.VerificationCode = strconv.Itoa(rand.Intn(900000) + 100000)
 	user.IsVerified = false
 
@@ -85,22 +92,29 @@ func (c *userUseCase) Register(email, password, username string) pkg.Response {
 		}
 	}
 
-	mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
-	config, err := config.LoadConfig()
-	if err != nil {
-		return pkg.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to load config",
+	configCh := make(chan *config.Config)
+	mailErrorCh := make(chan error)
+
+	go func() {
+		config, err := config.LoadConfig()
+		if err != nil {
+			configCh <- nil
+			return
 		}
-	}
-	if err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username); err != nil {
-		fmt.Println(err)
-		// #TODO LOGGER
-		return pkg.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to send verification email",
+		configCh <- &config
+	}()
+
+	go func() {
+		config := <-configCh
+		if config == nil {
+			mailErrorCh <- fmt.Errorf("failed to load config")
+			return
 		}
-	}
+		mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
+		err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username)
+		mailErrorCh <- err
+	}()
+
 	return pkg.Response{
 		Code:    http.StatusCreated,
 		Message: "User registered successfully",
