@@ -62,7 +62,7 @@
             }
         },
         "/api/logout": {
-            "post": {
+            "delete": {
                 "security": [
                     {
                         "ApiKeyAuth": []

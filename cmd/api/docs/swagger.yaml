@@ -82,7 +82,7 @@ paths:
       tags:
       - User
   /api/logout:
-    post:
+    delete:
       description: Logout a user by deleting the session and removing the session
         cookie.
       produces:

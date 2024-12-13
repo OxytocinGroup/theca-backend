@@ -19,10 +19,12 @@ type Config struct {
 	SMTPUsername string `mapstructure:"SMTP_USERNAME"`
 	SMTPPassword string `mapstructure:"SMTP_PASSWORD"`
 	SMTPFrom     string `mapstructure:"SMTP_FROM"`
+	
+	Environment string `mapstructure:"ENVIRONMENT"`
 }
 
 var envs = []string{
-	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_SERVER", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM",
+	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_SERVER", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM", "ENVIRONMENT",
 }
 
 func LoadConfig() (Config, error) {

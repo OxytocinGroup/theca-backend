@@ -4,15 +4,20 @@ import (
 	"time"
 
 	domain "github.com/OxytocinGroup/theca-backend/internal/domain"
-	interfaces "github.com/OxytocinGroup/theca-backend/internal/repository/interface"
 	"gorm.io/gorm"
 )
+
+type SessionRepository interface {
+	CreateSession(sessionID string, userID uint, expiresAt time.Time) error
+	GetSessionByID(sessionID string) (domain.Session, error)
+	DeleteSessionByID(sessionID string) error
+}
 
 type sessionDatabase struct {
 	DB *gorm.DB
 }
 
-func NewSessionRepository(DB *gorm.DB) interfaces.SessionRepository {
+func NewSessionRepository(DB *gorm.DB) SessionRepository {
 	return &sessionDatabase{DB}
 }
 

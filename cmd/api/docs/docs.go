@@ -73,7 +73,7 @@ const docTemplate = `{
             }
         },
         "/api/logout": {
-            "post": {
+            "delete": {
                 "security": [
                     {
                         "ApiKeyAuth": []

@@ -11,16 +11,21 @@ import (
 	utils "github.com/OxytocinGroup/theca-backend/internal/api/utils/email"
 	"github.com/OxytocinGroup/theca-backend/internal/config"
 	"github.com/OxytocinGroup/theca-backend/internal/domain"
-	interfaces "github.com/OxytocinGroup/theca-backend/internal/repository/interface"
-	services "github.com/OxytocinGroup/theca-backend/internal/usecase/interface"
+	"github.com/OxytocinGroup/theca-backend/internal/repository"
 	"github.com/OxytocinGroup/theca-backend/pkg"
 )
 
-type userUseCase struct {
-	userRepo interfaces.UserRepository
+type UserUseCase interface {
+	Register(email, password, username string) pkg.Response
+	VerifyEmail(email, code string) pkg.Response
+	Auth(username, password string) (*domain.User, error)
 }
 
-func NewUserUseCase(repo interfaces.UserRepository) services.UserUseCase {
+type userUseCase struct {
+	userRepo repository.UserRepository
+}
+
+func NewUserUseCase(repo repository.UserRepository) UserUseCase {
 	return &userUseCase{
 		userRepo: repo,
 	}

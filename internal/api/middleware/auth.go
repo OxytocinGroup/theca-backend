@@ -3,11 +3,11 @@ package middleware
 import (
 	"net/http"
 
-	sessionUC "github.com/OxytocinGroup/theca-backend/internal/usecase/interface"
+	"github.com/OxytocinGroup/theca-backend/internal/usecase"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(sessionUC sessionUC.SessionUseCase) gin.HandlerFunc {
+func AuthMiddleware(sessionUC usecase.SessionUseCase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sessionID, err := c.Cookie("session_id")
 		if err != nil {

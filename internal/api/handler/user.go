@@ -4,18 +4,18 @@ import (
 	"net/http"
 	"time"
 
-	services "github.com/OxytocinGroup/theca-backend/internal/usecase/interface"
+	"github.com/OxytocinGroup/theca-backend/internal/usecase"
 	"github.com/OxytocinGroup/theca-backend/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type UserHandler struct {
-	UserUseCase    services.UserUseCase
-	SessionUseCase services.SessionUseCase
+	UserUseCase    usecase.UserUseCase
+	SessionUseCase usecase.SessionUseCase
 }
 
-func NewUserHandler(usecase services.UserUseCase, sessionUseCase services.SessionUseCase) *UserHandler {
+func NewUserHandler(usecase usecase.UserUseCase, sessionUseCase usecase.SessionUseCase) *UserHandler {
 	return &UserHandler{
 		UserUseCase:    usecase,
 		SessionUseCase: sessionUseCase,
@@ -33,7 +33,7 @@ func NewUserHandler(usecase services.UserUseCase, sessionUseCase services.Sessio
 // @Failure 409 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
 // @Failure 400 {object} pkg.Response
-// @Router /api/users [post]
+// @Router /register [post]
 // @Security ApiKeyAuth
 func (cr *UserHandler) Register(c *gin.Context) {
 	var userRequest pkg.UserRequest
@@ -44,7 +44,6 @@ func (cr *UserHandler) Register(c *gin.Context) {
 		})
 		return
 	}
-
 	resp := cr.UserUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
 	c.JSON(resp.Code, resp)
 }
@@ -91,6 +90,7 @@ func (cr *UserHandler) VerifyEmail(c *gin.Context) {
 func (cr *UserHandler) Login(c *gin.Context) {
 	var req pkg.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
@@ -131,7 +131,7 @@ func (cr *UserHandler) Login(c *gin.Context) {
 // @Success 200 {object} pkg.Response
 // @Failure 401 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
-// @Router /api/logout [post]
+// @Router /api/logout [delete]
 // @Security ApiKeyAuth
 func (cr *UserHandler) Logout(c *gin.Context) {
 	sessionID, err := c.Cookie("session_id")

@@ -2,15 +2,23 @@ package repository
 
 import (
 	domain "github.com/OxytocinGroup/theca-backend/internal/domain"
-	interfaces "github.com/OxytocinGroup/theca-backend/internal/repository/interface"
 	"gorm.io/gorm"
 )
+
+type UserRepository interface {
+	GetByEmail(email string) (domain.User, error)
+	GetByUsername(username string) (domain.User, error)
+	Create(user *domain.User) error
+	EmailExists(email string) (bool, error)
+	UsernameExists(username string) (bool, error)
+	Update(user *domain.User) error
+}
 
 type userDatabase struct {
 	DB *gorm.DB
 }
 
-func NewUserRepository(DB *gorm.DB) interfaces.UserRepository {
+func NewUserRepository(DB *gorm.DB) UserRepository {
 	return &userDatabase{DB}
 }
 

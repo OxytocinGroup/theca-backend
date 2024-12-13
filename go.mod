@@ -19,6 +19,8 @@ require (
 	gorm.io/gorm v1.25.12
 )
 
+require github.com/sirupsen/logrus v1.9.3 // indirect
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/bytedance/sonic v1.12.5 // indirect

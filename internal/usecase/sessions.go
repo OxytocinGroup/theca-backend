@@ -4,15 +4,20 @@ import (
 	"errors"
 	"time"
 
-	interfaces "github.com/OxytocinGroup/theca-backend/internal/repository/interface"
-	services "github.com/OxytocinGroup/theca-backend/internal/usecase/interface"
+	"github.com/OxytocinGroup/theca-backend/internal/repository"
 )
 
-type sessionUseCase struct {
-	sessionRepo interfaces.SessionRepository
+type SessionUseCase interface {
+	CreateSession(sessionID string, userID uint, expiresAt time.Time) error
+	ValidateSession(sessionID string) (uint, error)
+	DeleteSession(sessionID string) error
 }
 
-func NewSessionUseCase(repo interfaces.SessionRepository) services.SessionUseCase {
+type sessionUseCase struct {
+	sessionRepo repository.SessionRepository
+}
+
+func NewSessionUseCase(repo repository.SessionRepository) SessionUseCase {
 	return &sessionUseCase{
 		sessionRepo: repo,
 	}

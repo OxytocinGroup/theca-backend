@@ -13,7 +13,16 @@ func main() {
 		log.Fatal("cannot load config: ", err)
 	}
 
-	server, diErr := di.InitializeAPI(config)
+	var dependency di.DepsProvider
+	if config.Environment == "dev" {
+		dependency = di.NewDevDeps(config)
+	} else if config.Environment == "test" {
+		// #TODO
+	} else {
+		// # TODO
+	}
+
+	server, diErr := di.InitializeAPI(dependency)
 	if diErr != nil {
 		log.Fatal("cannot start server: ", diErr)
 	} else {
