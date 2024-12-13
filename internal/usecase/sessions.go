@@ -23,12 +23,12 @@ func NewSessionUseCase(repo repository.SessionRepository) SessionUseCase {
 	}
 }
 
-func (s *sessionUseCase) CreateSession(sessionID string, userID uint, expiresAt time.Time) error {
-	return s.sessionRepo.CreateSession(sessionID, userID, expiresAt)
+func (suc *sessionUseCase) CreateSession(sessionID string, userID uint, expiresAt time.Time) error {
+	return suc.sessionRepo.CreateSession(sessionID, userID, expiresAt)
 }
 
-func (s *sessionUseCase) ValidateSession(sessionID string) (uint, error) {
-	session, err := s.sessionRepo.GetSessionByID(sessionID)
+func (suc *sessionUseCase) ValidateSession(sessionID string) (uint, error) {
+	session, err := suc.sessionRepo.GetSessionByID(sessionID)
 	if err != nil {
 		return 0, err
 	}
@@ -39,6 +39,6 @@ func (s *sessionUseCase) ValidateSession(sessionID string) (uint, error) {
 	return session.UserID, nil
 }
 
-func (s *sessionUseCase) DeleteSession(sessionID string) error {
-	return s.sessionRepo.DeleteSessionByID(sessionID)
+func (suc *sessionUseCase) DeleteSession(sessionID string) error {
+	return suc.sessionRepo.DeleteSessionByID(sessionID)
 }

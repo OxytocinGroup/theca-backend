@@ -21,21 +21,21 @@ func NewSessionRepository(DB *gorm.DB) SessionRepository {
 	return &sessionDatabase{DB}
 }
 
-func (s *sessionDatabase) CreateSession(sessionID string, userID uint, expiresAt time.Time) error {
+func (sdb *sessionDatabase) CreateSession(sessionID string, userID uint, expiresAt time.Time) error {
 	session := &domain.Session{
 		ID:        sessionID,
 		UserID:    userID,
 		ExpiresAt: expiresAt,
 	}
-	return s.DB.Model(&domain.Session{}).Create(&session).Error
+	return sdb.DB.Model(&domain.Session{}).Create(&session).Error
 }
 
-func (s *sessionDatabase) GetSessionByID(sessionID string) (domain.Session, error) {
+func (sdb *sessionDatabase) GetSessionByID(sessionID string) (domain.Session, error) {
 	var session domain.Session
-	err := s.DB.Model(&domain.Session{}).Where("ID = ?", sessionID).First(&session).Error
+	err := sdb.DB.Model(&domain.Session{}).Where("ID = ?", sessionID).First(&session).Error
 	return session, err
 }
 
-func (s *sessionDatabase) DeleteSessionByID(sessionID string) error {
-	return s.DB.Model(&domain.Session{}).Where("ID = ?", sessionID).Delete(&domain.Session{}).Error
+func (sdb *sessionDatabase) DeleteSessionByID(sessionID string) error {
+	return sdb.DB.Model(&domain.Session{}).Where("ID = ?", sessionID).Delete(&domain.Session{}).Error
 }

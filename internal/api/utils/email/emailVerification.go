@@ -16,15 +16,15 @@ type Mail struct {
 }
 
 func (m *Mail) SendVerificationEmail(cfg *config.Config, email, code, username string) error {
-	t := template.New("mail.html")
+	template := template.New("mail.html")
 
-	t, err := t.ParseFiles("internal/api/utils/email/mail.html")
+	template, err := template.ParseFiles("internal/api/utils/email/mail.html")
 	if err != nil {
 		return err
 	}
 
 	var tpl bytes.Buffer
-	if err := t.Execute(&tpl, Mail{Username: username, Code: code}); err != nil {
+	if err := template.Execute(&tpl, Mail{Username: username, Code: code}); err != nil {
 		return err
 	}
 

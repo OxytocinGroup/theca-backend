@@ -32,7 +32,7 @@ func NewUserUseCase(repo repository.UserRepository) UserUseCase {
 	}
 }
 
-func (c *userUseCase) Register(email, password, username string) pkg.Response {
+func (uuc *userUseCase) Register(email, password, username string) pkg.Response {
 	var user domain.User
 	user.Email = email
 	user.Password = password
@@ -46,12 +46,12 @@ func (c *userUseCase) Register(email, password, username string) pkg.Response {
 
 	go func() {
 		defer wg.Done()
-		emailExists, emailError = c.userRepo.EmailExists(user.Email)
+		emailExists, emailError = uuc.userRepo.EmailExists(user.Email)
 	}()
 
 	go func() {
 		defer wg.Done()
-		usernameExists, usernameError = c.userRepo.UsernameExists(user.Username)
+		usernameExists, usernameError = uuc.userRepo.UsernameExists(user.Username)
 	}()
 
 	if emailError != nil || usernameError != nil {
@@ -85,7 +85,7 @@ func (c *userUseCase) Register(email, password, username string) pkg.Response {
 	user.VerificationCode = strconv.Itoa(rand.Intn(900000) + 100000)
 	user.IsVerified = false
 
-	if err := c.userRepo.Create(&user); err != nil {
+	if err := uuc.userRepo.Create(&user); err != nil {
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to create user",
@@ -121,8 +121,8 @@ func (c *userUseCase) Register(email, password, username string) pkg.Response {
 	}
 }
 
-func (c *userUseCase) VerifyEmail(email, code string) pkg.Response {
-	user, err := c.userRepo.GetByEmail(email)
+func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
+	user, err := uuc.userRepo.GetByEmail(email)
 	if err != nil {
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
@@ -140,7 +140,7 @@ func (c *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	user.IsVerified = true
 	user.VerificationCode = ""
 
-	if err := c.userRepo.Update(&user); err != nil {
+	if err := uuc.userRepo.Update(&user); err != nil {
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to update user",
@@ -153,8 +153,8 @@ func (c *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	}
 }
 
-func (c *userUseCase) Auth(username, password string) (*domain.User, error) {
-	user, err := c.userRepo.GetByUsername(username)
+func (uuc *userUseCase) Auth(username, password string) (*domain.User, error) {
+	user, err := uuc.userRepo.GetByUsername(username)
 	if err != nil {
 		return nil, err
 	}

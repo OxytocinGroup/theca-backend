@@ -35,7 +35,7 @@ func NewUserHandler(usecase usecase.UserUseCase, sessionUseCase usecase.SessionU
 // @Failure 400 {object} pkg.Response
 // @Router /register [post]
 // @Security ApiKeyAuth
-func (cr *UserHandler) Register(c *gin.Context) {
+func (uh *UserHandler) Register(c *gin.Context) {
 	var userRequest pkg.UserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.Response{
@@ -44,7 +44,7 @@ func (cr *UserHandler) Register(c *gin.Context) {
 		})
 		return
 	}
-	resp := cr.UserUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
+	resp := uh.UserUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
 	c.JSON(resp.Code, resp)
 }
 
@@ -60,7 +60,7 @@ func (cr *UserHandler) Register(c *gin.Context) {
 // @Failure 500 {object} pkg.Response
 // @Router /api/verify-email [post]
 // @Security ApiKeyAuth
-func (cr *UserHandler) VerifyEmail(c *gin.Context) {
+func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 	var verifyReq pkg.VerifyRequest
 	if err := c.ShouldBindJSON(&verifyReq); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.Response{
@@ -70,7 +70,7 @@ func (cr *UserHandler) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	resp := cr.UserUseCase.VerifyEmail(verifyReq.Email, verifyReq.Code)
+	resp := uh.UserUseCase.VerifyEmail(verifyReq.Email, verifyReq.Code)
 	c.JSON(resp.Code, resp)
 }
 
@@ -87,7 +87,7 @@ func (cr *UserHandler) VerifyEmail(c *gin.Context) {
 // @Failure 500 {object} pkg.Response
 // @Router /api/login [post]
 // @Security ApiKeyAuth
-func (cr *UserHandler) Login(c *gin.Context) {
+func (uh *UserHandler) Login(c *gin.Context) {
 	var req pkg.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 
@@ -98,7 +98,7 @@ func (cr *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := cr.UserUseCase.Auth(req.Username, req.Password)
+	user, err := uh.UserUseCase.Auth(req.Username, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, pkg.Response{
 			Code:    http.StatusUnauthorized,
@@ -108,7 +108,7 @@ func (cr *UserHandler) Login(c *gin.Context) {
 	}
 
 	sessionID := uuid.New().String()
-	if err := cr.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(24*time.Hour)); err != nil {
+	if err := uh.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(24*time.Hour)); err != nil {
 		c.JSON(http.StatusInternalServerError, pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to create session" + err.Error(),
@@ -133,7 +133,7 @@ func (cr *UserHandler) Login(c *gin.Context) {
 // @Failure 500 {object} pkg.Response
 // @Router /api/logout [delete]
 // @Security ApiKeyAuth
-func (cr *UserHandler) Logout(c *gin.Context) {
+func (uh *UserHandler) Logout(c *gin.Context) {
 	sessionID, err := c.Cookie("session_id")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, pkg.Response{
@@ -143,7 +143,7 @@ func (cr *UserHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	if err := cr.SessionUseCase.DeleteSession(sessionID); err != nil {
+	if err := uh.SessionUseCase.DeleteSession(sessionID); err != nil {
 		c.JSON(http.StatusInternalServerError, pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to delete session",

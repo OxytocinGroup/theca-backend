@@ -22,34 +22,34 @@ func NewUserRepository(DB *gorm.DB) UserRepository {
 	return &userDatabase{DB}
 }
 
-func (c *userDatabase) GetByEmail(email string) (domain.User, error) {
+func (udb *userDatabase) GetByEmail(email string) (domain.User, error) {
 	var user domain.User
-	err := c.DB.Model(&domain.User{}).Where("email = ?", email).First(&user).Error
+	err := udb.DB.Model(&domain.User{}).Where("email = ?", email).First(&user).Error
 
 	return user, err
 }
 
-func (c *userDatabase) GetByUsername(username string) (domain.User, error) {
+func (udb *userDatabase) GetByUsername(username string) (domain.User, error) {
 	var user domain.User
-	err := c.DB.Model(&domain.User{}).Where("username = ?", username).First(&user).Error
+	err := udb.DB.Model(&domain.User{}).Where("username = ?", username).First(&user).Error
 	return user, err
 }
-func (c *userDatabase) Create(user *domain.User) error {
-	return c.DB.Model(&domain.User{}).Create(user).Error
+func (udb *userDatabase) Create(user *domain.User) error {
+	return udb.DB.Model(&domain.User{}).Create(user).Error
 }
 
-func (c *userDatabase) EmailExists(email string) (bool, error) {
+func (udb *userDatabase) EmailExists(email string) (bool, error) {
 	var count int64
-	err := c.DB.Model(&domain.User{}).Where("email = ?", email).Count(&count).Error
+	err := udb.DB.Model(&domain.User{}).Where("email = ?", email).Count(&count).Error
 	return count > 0, err
 }
 
-func (c *userDatabase) UsernameExists(username string) (bool, error) {
+func (udb *userDatabase) UsernameExists(username string) (bool, error) {
 	var count int64
-	err := c.DB.Model(&domain.User{}).Where("username = ?", username).Count(&count).Error
+	err := udb.DB.Model(&domain.User{}).Where("username = ?", username).Count(&count).Error
 	return count > 0, err
 }
 
-func (c *userDatabase) Update(user *domain.User) error {
-	return c.DB.Model(&domain.User{}).Where("id = ?", user.ID).Save(user).Error
+func (udb *userDatabase) Update(user *domain.User) error {
+	return udb.DB.Model(&domain.User{}).Where("id = ?", user.ID).Save(user).Error
 }
