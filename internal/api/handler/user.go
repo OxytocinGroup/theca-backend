@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -47,9 +48,6 @@ func (uh *UserHandler) Register(c *gin.Context) {
 		})
 		return
 	}
-	uh.Logger.Info(c, "registrating user", map[string]interface{}{
-		"request": userRequest,
-	})
 	resp := uh.UserUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
 	c.JSON(resp.Code, resp)
 }
@@ -104,17 +102,17 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := uh.UserUseCase.Auth(req.Username, req.Password)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, pkg.Response{
-			Code:    http.StatusUnauthorized,
-			Message: "Invalid credentials",
-		})
+	user, resp := uh.UserUseCase.Auth(req.Username, req.Password)
+	if resp.Code != 200 {
+		c.JSON(resp.Code, resp)
 		return
 	}
 
 	sessionID := uuid.New().String()
 	if err := uh.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(24*time.Hour)); err != nil {
+		uh.Logger.Error(context.Background(), "failed to create session", map[string]interface{}{
+			"error": err,
+		})
 		c.JSON(http.StatusInternalServerError, pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to create session" + err.Error(),
@@ -142,6 +140,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 func (uh *UserHandler) Logout(c *gin.Context) {
 	sessionID, err := c.Cookie("session_id")
 	if err != nil {
+		uh.Logger.Info(context.Background(), "not found cookie", nil)
 		c.JSON(http.StatusUnauthorized, pkg.Response{
 			Code:    http.StatusUnauthorized,
 			Message: "Unauthorized",
@@ -150,6 +149,9 @@ func (uh *UserHandler) Logout(c *gin.Context) {
 	}
 
 	if err := uh.SessionUseCase.DeleteSession(sessionID); err != nil {
+		uh.Logger.Error(context.Background(), "failed to delete session", map[string]interface{}{
+			"sessionID": sessionID,
+		})
 		c.JSON(http.StatusInternalServerError, pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to delete session",

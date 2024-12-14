@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -33,6 +34,9 @@ func (suc *sessionUseCase) CreateSession(sessionID string, userID uint, expiresA
 func (suc *sessionUseCase) ValidateSession(sessionID string) (uint, error) {
 	session, err := suc.sessionRepo.GetSessionByID(sessionID)
 	if err != nil {
+		suc.log.Error(context.Background(), "failed to get session by id", map[string]interface{}{
+			"sessionID": sessionID,
+		})
 		return 0, err
 	}
 

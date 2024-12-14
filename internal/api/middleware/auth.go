@@ -24,7 +24,6 @@ func AuthMiddleware(sessionUC usecase.SessionUseCase) gin.HandlerFunc {
 		}
 
 		c.Set("user_id", userID)
-
 		c.Next()
 	}
 }

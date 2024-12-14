@@ -21,7 +21,7 @@ import (
 type UserUseCase interface {
 	Register(email, password, username string) pkg.Response
 	VerifyEmail(email, code string) pkg.Response
-	Auth(username, password string) (*domain.User, error)
+	Auth(username, password string) (*domain.User, pkg.Response)
 }
 
 type userUseCase struct {
@@ -61,18 +61,28 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	wg.Wait()
 
 	if emailError != nil || usernameError != nil {
+		uuc.log.Error(context.Background(), "failed to check email or username existence", map[string]interface{}{
+			"email error":    emailError,
+			"username error": usernameError,
+		})
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to check email or username existence",
 		}
 	}
 	if emailExists {
+		uuc.log.Info(context.Background(), "email already exists", map[string]interface{}{
+			"code": 409,
+		})
 		return pkg.Response{
 			Code:    http.StatusConflict,
 			Message: "Email already exists",
 		}
 	}
 	if usernameExists {
+		uuc.log.Info(context.Background(), "username already exists", map[string]interface{}{
+			"code": 409,
+		})
 		return pkg.Response{
 			Code:    http.StatusConflict,
 			Message: "Username already exists",
@@ -81,6 +91,9 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 
 	hashPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
+		uuc.log.Error(context.Background(), "failed to hash password", map[string]interface{}{
+			"error": err,
+		})
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to hash password",
@@ -92,6 +105,10 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	user.IsVerified = false
 
 	if err := uuc.userRepo.Create(&user); err != nil {
+		uuc.log.Error(context.Background(), "failed to create user", map[string]interface{}{
+			"user":  user,
+			"error": err,
+		})
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to create user",
@@ -104,6 +121,9 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	go func() {
 		config, err := config.LoadConfig()
 		if err != nil {
+			uuc.log.Error(context.Background(), "failed to load config", map[string]interface{}{
+				"error": err,
+			})
 			configCh <- nil
 			return
 		}
@@ -119,7 +139,8 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
 		err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username)
 		uuc.log.Error(context.Background(), "failed to send verification email", map[string]interface{}{
-			"error: ": err,
+			"user_id": user.ID,
+			"error":   err,
 		})
 	}()
 
@@ -132,6 +153,10 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	user, err := uuc.userRepo.GetByEmail(email)
 	if err != nil {
+		uuc.log.Error(context.Background(), "failed to get user by email", map[string]interface{}{
+			"user_email": user.Email,
+			"error":      err,
+		})
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to get user by email",
@@ -139,6 +164,10 @@ func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	}
 
 	if user.VerificationCode != code {
+		uuc.log.Info(context.Background(), "invalid verification code", map[string]interface{}{
+			"user_id": user.ID,
+			"code":    400,
+		})
 		return pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid verification code",
@@ -149,6 +178,10 @@ func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	user.VerificationCode = ""
 
 	if err := uuc.userRepo.Update(&user); err != nil {
+		uuc.log.Error(context.Background(), "failed to update user", map[string]interface{}{
+			"user_id": user.ID,
+			"error":   err,
+		})
 		return pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Failed to update user",
@@ -161,14 +194,30 @@ func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	}
 }
 
-func (uuc *userUseCase) Auth(username, password string) (*domain.User, error) {
+func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Response) {
 	user, err := uuc.userRepo.GetByUsername(username)
 	if err != nil {
-		return nil, err
+		uuc.log.Error(context.Background(), "failed to get user by username", map[string]interface{}{
+			"username": username,
+			"error":    err,
+		})
+		return nil, pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to get user by username",
+		}
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, err
+		uuc.log.Error(context.Background(), "failed to compare hash and password", map[string]interface{}{
+			"user_id": user.ID,
+			"error":   err,
+		})
+		return nil, pkg.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "invalid password",
+		}
 	}
 
-	return &user, err
+	return &user, pkg.Response{
+		Code: http.StatusOK,
+	}
 }

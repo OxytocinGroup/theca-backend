@@ -4,3 +4,6 @@
 - gomail -> resend [done]
 - logger [done]
 - check for email verification []
+- add logger to files
+- нормальная обработка ошибок []
+- check session before login []
