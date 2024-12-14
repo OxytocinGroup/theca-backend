@@ -2,5 +2,5 @@
 - cleaning code [done]
 - refactor di [done]
 - gomail -> resend [done]
-- logger []
-- unit tests []
+- logger [done]
+- check for email verification []
