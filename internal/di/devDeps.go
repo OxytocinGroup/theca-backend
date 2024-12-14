@@ -2,7 +2,6 @@ package di
 
 import (
 	"github.com/OxytocinGroup/theca-backend/internal/config"
-	db "github.com/OxytocinGroup/theca-backend/internal/db"
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
 	"github.com/OxytocinGroup/theca-backend/internal/usecase"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
@@ -10,30 +9,29 @@ import (
 )
 
 type DevDeps struct {
-	config config.Config
-	db     *gorm.DB
-	logger logger.Logger
+	Config    config.Config
+	Db        *gorm.DB
+	LogLogger logger.Logger
 }
 
-func NewDevDeps(cfg config.Config) DepsProvider {
-	database := db.ConnectDatabase(cfg).GetDB()
+func NewDevDeps(deps DevDeps) DepsProvider {
 	return &DevDeps{
-		config: cfg,
-		db:     database,
-		logger: logger.NewLogrusLogger(cfg.LogLevel),
+		Config:    deps.Config,
+		Db:        deps.Db,
+		LogLogger: deps.LogLogger,
 	}
 }
 
 func (d *DevDeps) Database() *gorm.DB {
-	return d.db
+	return d.Db
 }
 
 func (d *DevDeps) SessionRepository() repository.SessionRepository {
-	return repository.NewSessionRepository(d.db)
+	return repository.NewSessionRepository(d.Db)
 }
 
 func (d *DevDeps) UserRepository() repository.UserRepository {
-	return repository.NewUserRepository(d.db)
+	return repository.NewUserRepository(d.Db)
 }
 
 func (d *DevDeps) SessionUseCase(repo repository.SessionRepository, log logger.Logger) usecase.SessionUseCase {
@@ -45,5 +43,5 @@ func (d *DevDeps) UserUseCase(repo repository.UserRepository, log logger.Logger)
 }
 
 func (d *DevDeps) Logger() logger.Logger {
-	return d.logger
+	return d.LogLogger
 }

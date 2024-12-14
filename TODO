@@ -1,9 +1,10 @@
-14.12
 - cleaning code [done]
 - refactor di [done]
 - gomail -> resend [done]
 - logger [done]
 - check for email verification []
-- add logger to files
+- add logger to files [done]
 - нормальная обработка ошибок []
 - check session before login []
+- forgot password []
+- change password []
