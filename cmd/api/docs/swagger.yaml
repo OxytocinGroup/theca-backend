@@ -1,4 +1,11 @@
 definitions:
+  pkg.ChangePassRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
   pkg.LoginRequest:
     properties:
       password:
@@ -44,6 +51,41 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/change-pass:
+    post:
+      description: Changes the user's password and deleting all sessions for this
+        user
+      parameters:
+      - description: ChangePassRequest
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/pkg.ChangePassRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Change user password
+      tags:
+      - User
   /api/login:
     post:
       consumes:

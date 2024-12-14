@@ -11,6 +11,7 @@ type SessionRepository interface {
 	CreateSession(sessionID string, userID uint, expiresAt time.Time) error
 	GetSessionByID(sessionID string) (domain.Session, error)
 	DeleteSessionByID(sessionID string) error
+	DeleteAllSessions(userID uint) error
 }
 
 type sessionDatabase struct {
@@ -32,10 +33,14 @@ func (sdb *sessionDatabase) CreateSession(sessionID string, userID uint, expires
 
 func (sdb *sessionDatabase) GetSessionByID(sessionID string) (domain.Session, error) {
 	var session domain.Session
-	err := sdb.DB.Model(&domain.Session{}).Where("ID = ?", sessionID).First(&session).Error
+	err := sdb.DB.Model(&domain.Session{}).Where("id = ?", sessionID).First(&session).Error
 	return session, err
 }
 
 func (sdb *sessionDatabase) DeleteSessionByID(sessionID string) error {
-	return sdb.DB.Model(&domain.Session{}).Where("ID = ?", sessionID).Delete(&domain.Session{}).Error
+	return sdb.DB.Model(&domain.Session{}).Where("id = ?", sessionID).Delete(&domain.Session{}).Error
+}
+
+func (sdb *sessionDatabase) DeleteAllSessions(userID uint) error {
+	return sdb.DB.Model(&domain.Session{}).Where("user_id = ?", userID).Delete(&domain.Session{}).Error
 }

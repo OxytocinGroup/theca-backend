@@ -37,6 +37,7 @@ func NewServerHTTP(userHandler *handler.UserHandler) *ServerHTTP {
 		}
 		c.JSON(200, gin.H{"message": "Welcome to your profile!", "user_id": userID})
 	})
+	api.POST("/change-pass", userHandler.ChangePass)
 
 	return &ServerHTTP{engine: engine}
 }

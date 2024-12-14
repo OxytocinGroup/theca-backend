@@ -13,7 +13,7 @@ type DepsProvider interface {
 	Database() *gorm.DB
 	UserRepository() repository.UserRepository
 	SessionRepository() repository.SessionRepository
-	UserUseCase(repository.UserRepository, logger.Logger) usecase.UserUseCase
+	UserUseCase(repository.UserRepository, repository.SessionRepository, logger.Logger) usecase.UserUseCase
 	SessionUseCase(repository.SessionRepository, logger.Logger) usecase.SessionUseCase
 	Logger() logger.Logger
 }
@@ -24,7 +24,7 @@ func InitializeAPI(provider DepsProvider) (*http.ServerHTTP, error) {
 	userRepo := provider.UserRepository()
 	sessionRepo := provider.SessionRepository()
 
-	userUC := provider.UserUseCase(userRepo, log)
+	userUC := provider.UserUseCase(userRepo, sessionRepo, log)
 	sessionUC := provider.SessionUseCase(sessionRepo, log)
 
 	userHandler := handler.NewUserHandler(userUC, sessionUC, log)

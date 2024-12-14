@@ -12,6 +12,7 @@ type UserRepository interface {
 	EmailExists(email string) (bool, error)
 	UsernameExists(username string) (bool, error)
 	Update(user *domain.User) error
+	GetByID(id string) (domain.User, error)
 }
 
 type userDatabase struct {
@@ -52,4 +53,10 @@ func (udb *userDatabase) UsernameExists(username string) (bool, error) {
 
 func (udb *userDatabase) Update(user *domain.User) error {
 	return udb.DB.Model(&domain.User{}).Where("id = ?", user.ID).Save(user).Error
+}
+
+func (udb *userDatabase) GetByID(id string) (domain.User, error) {
+	var user domain.User
+	err := udb.DB.Model(&domain.User{}).Where("id = ?", id).First(&user).Error
+	return user, err
 }

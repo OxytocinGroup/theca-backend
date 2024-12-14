@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -94,7 +95,6 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 func (uh *UserHandler) Login(c *gin.Context) {
 	var req pkg.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
@@ -164,5 +164,38 @@ func (uh *UserHandler) Logout(c *gin.Context) {
 		Code:    http.StatusOK,
 		Message: "Logout successful",
 	})
+}
 
+// @ChangePass GoDoc
+// @Summary Change user password
+// @Description Changes the user's password and deleting all sessions for this user
+// @Tags User
+// @Produce json
+// @Param Request body pkg.ChangePassRequest true "ChangePassRequest"
+// @Success 200 {object} pkg.Response
+// @Failure 400 {object} pkg.Response
+// @Failure 401 {object} pkg.Response
+// @Failure 500 {object} pkg.Response
+// @Router /api/change-pass [post]
+// @Security ApiKeyAuth
+func (uh *UserHandler) ChangePass(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, pkg.Response{
+			Code: http.StatusUnauthorized,
+		})
+		return
+	}
+
+	var req pkg.ChangePassRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.Response{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid request body",
+		})
+		return
+	}
+
+	resp := uh.UserUseCase.ChangePass(fmt.Sprint(userID), req.Password)
+	c.JSON(resp.Code, resp)
 }

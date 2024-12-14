@@ -38,8 +38,8 @@ func (d *DevDeps) SessionUseCase(repo repository.SessionRepository, log logger.L
 	return usecase.NewSessionUseCase(repo, log)
 }
 
-func (d *DevDeps) UserUseCase(repo repository.UserRepository, log logger.Logger) usecase.UserUseCase {
-	return usecase.NewUserUseCase(repo, log)
+func (d *DevDeps) UserUseCase(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, log logger.Logger) usecase.UserUseCase {
+	return usecase.NewUserUseCase(userRepo, sessionRepo, log)
 }
 
 func (d *DevDeps) Logger() logger.Logger {

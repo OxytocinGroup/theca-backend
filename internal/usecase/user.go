@@ -22,17 +22,20 @@ type UserUseCase interface {
 	Register(email, password, username string) pkg.Response
 	VerifyEmail(email, code string) pkg.Response
 	Auth(username, password string) (*domain.User, pkg.Response)
+	ChangePass(userID string, newPassword string) pkg.Response
 }
 
 type userUseCase struct {
-	userRepo repository.UserRepository
-	log      logger.Logger
+	userRepo    repository.UserRepository
+	sessionRepo repository.SessionRepository
+	log         logger.Logger
 }
 
-func NewUserUseCase(repo repository.UserRepository, log logger.Logger) UserUseCase {
+func NewUserUseCase(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, log logger.Logger) UserUseCase {
 	return &userUseCase{
-		userRepo: repo,
-		log:      log,
+		userRepo:    userRepo,
+		sessionRepo: sessionRepo,
+		log:         log,
 	}
 }
 
@@ -219,5 +222,59 @@ func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Respo
 
 	return &user, pkg.Response{
 		Code: http.StatusOK,
+	}
+}
+
+func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Response {
+	user, err := uuc.userRepo.GetByID(userID)
+	if err != nil {
+		uuc.log.Error(context.Background(), "failed to get user by id", map[string]interface{}{
+			"user_id": userID,
+			"error":   err,
+		})
+		return pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to get user by username",
+		}
+	}
+
+	hashPass, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		uuc.log.Error(context.Background(), "failed to hash password", map[string]interface{}{
+			"error": err,
+		})
+		return pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to hash password",
+		}
+	}
+
+	user.Password = string(hashPass)
+
+	if err := uuc.userRepo.Update(&user); err != nil {
+		uuc.log.Error(context.Background(), "failed to update user", map[string]interface{}{
+			"user_id": user.ID,
+			"error":   err,
+		})
+		return pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to update user",
+		}
+	}
+
+	if err := uuc.sessionRepo.DeleteAllSessions(user.ID); err != nil {
+		uuc.log.Error(context.Background(), "failed to delete sessions", map[string]interface{}{
+			"user_id": user.ID,
+			"error":   err,
+		})
+		return pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to delete sessions by id",
+		}
+	}
+
+	return pkg.Response{
+		Code:    http.StatusOK,
+		Message: "Password changed successfully",
 	}
 }
