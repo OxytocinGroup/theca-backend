@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/OxytocinGroup/theca-backend/internal/domain"
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
 	"github.com/OxytocinGroup/theca-backend/pkg"
+	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 )
 
 type UserUseCase interface {
@@ -24,11 +26,13 @@ type UserUseCase interface {
 
 type userUseCase struct {
 	userRepo repository.UserRepository
+	log      logger.Logger
 }
 
-func NewUserUseCase(repo repository.UserRepository) UserUseCase {
+func NewUserUseCase(repo repository.UserRepository, log logger.Logger) UserUseCase {
 	return &userUseCase{
 		userRepo: repo,
+		log:      log,
 	}
 }
 
@@ -53,6 +57,8 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		defer wg.Done()
 		usernameExists, usernameError = uuc.userRepo.UsernameExists(user.Username)
 	}()
+
+	wg.Wait()
 
 	if emailError != nil || usernameError != nil {
 		return pkg.Response{
@@ -112,7 +118,9 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		}
 		mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
 		err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username)
-		mailErrorCh <- err
+		uuc.log.Error(context.Background(), "failed to send verification email", map[string]interface{}{
+			"error: ": err,
+		})
 	}()
 
 	return pkg.Response{

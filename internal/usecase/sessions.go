@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
+	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 )
 
 type SessionUseCase interface {
@@ -15,11 +16,13 @@ type SessionUseCase interface {
 
 type sessionUseCase struct {
 	sessionRepo repository.SessionRepository
+	log         logger.Logger
 }
 
-func NewSessionUseCase(repo repository.SessionRepository) SessionUseCase {
+func NewSessionUseCase(repo repository.SessionRepository, log logger.Logger) SessionUseCase {
 	return &sessionUseCase{
 		sessionRepo: repo,
+		log:         log,
 	}
 }
 

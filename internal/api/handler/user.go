@@ -6,6 +6,7 @@ import (
 
 	"github.com/OxytocinGroup/theca-backend/internal/usecase"
 	"github.com/OxytocinGroup/theca-backend/pkg"
+	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -13,12 +14,14 @@ import (
 type UserHandler struct {
 	UserUseCase    usecase.UserUseCase
 	SessionUseCase usecase.SessionUseCase
+	Logger         logger.Logger
 }
 
-func NewUserHandler(usecase usecase.UserUseCase, sessionUseCase usecase.SessionUseCase) *UserHandler {
+func NewUserHandler(usecase usecase.UserUseCase, sessionUseCase usecase.SessionUseCase, log logger.Logger) *UserHandler {
 	return &UserHandler{
 		UserUseCase:    usecase,
 		SessionUseCase: sessionUseCase,
+		Logger:         log,
 	}
 }
 
@@ -44,6 +47,9 @@ func (uh *UserHandler) Register(c *gin.Context) {
 		})
 		return
 	}
+	uh.Logger.Info(c, "registrating user", map[string]interface{}{
+		"request": userRequest,
+	})
 	resp := uh.UserUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
 	c.JSON(resp.Code, resp)
 }

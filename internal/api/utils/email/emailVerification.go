@@ -39,6 +39,6 @@ func (m *Mail) SendVerificationEmail(cfg *config.Config, email, code, username s
 		Subject: fmt.Sprintf("%s | Verification Code", code),
 	}
 
-	_, pohuy1 := client.Emails.Send(params)
-	return pohuy1
+	_, err = client.Emails.Send(params)
+	return err
 }

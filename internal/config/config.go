@@ -14,13 +14,15 @@ type Config struct {
 	DBPort     string `mapstructure:"DB_PORT"`
 	DBPassword string `mapstructure:"DB_PASSWORD"`
 
-	SMTPAPI   string `mapstructure:"SMTP_API"`
+	SMTPAPI string `mapstructure:"SMTP_API"`
+
+	LogLevel string `mapstructure:"LOG_LEVEL"`
 
 	Environment string `mapstructure:"ENVIRONMENT"`
 }
 
 var envs = []string{
-	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_API", "ENVIRONMENT",
+	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_API", "ENVIRONMENT", "LOG_LEVEL",
 }
 
 func LoadConfig() (Config, error) {

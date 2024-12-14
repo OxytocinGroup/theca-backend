@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	config "github.com/OxytocinGroup/theca-backend/internal/config"
 	di "github.com/OxytocinGroup/theca-backend/internal/di"
+	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 )
 
 func main() {
@@ -12,6 +14,9 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot load config: ", err)
 	}
+
+	logger := logger.NewLogrusLogger(config.LogLevel)
+	logger.Info(context.Background(), "App started", nil)
 
 	var dependency di.DepsProvider
 	if config.Environment == "dev" {

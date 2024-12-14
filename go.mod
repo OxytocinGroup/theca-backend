@@ -19,6 +19,8 @@ require (
 
 require github.com/resend/resend-go/v2 v2.13.0
 
+require gopkg.in/natefinch/lumberjack.v2 v2.2.1
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/bytedance/sonic v1.12.5 // indirect
