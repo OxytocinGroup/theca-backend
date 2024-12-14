@@ -105,7 +105,39 @@ paths:
       summary: Logout a user
       tags:
       - User
-  /api/users:
+  /api/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Verify email
+      parameters:
+      - description: VerifyRequest
+        in: body
+        name: verifyReq
+        required: true
+        schema:
+          $ref: '#/definitions/pkg.VerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify email
+      tags:
+      - User
+  /register:
     post:
       consumes:
       - application/json
@@ -139,38 +171,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Register a new user
-      tags:
-      - User
-  /api/verify-email:
-    post:
-      consumes:
-      - application/json
-      description: Verify email
-      parameters:
-      - description: VerifyRequest
-        in: body
-        name: verifyReq
-        required: true
-        schema:
-          $ref: '#/definitions/pkg.VerifyRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/pkg.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/pkg.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/pkg.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Verify email
       tags:
       - User
 swagger: "2.0"
