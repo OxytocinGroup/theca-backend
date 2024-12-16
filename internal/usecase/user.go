@@ -64,7 +64,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	wg.Wait()
 
 	if emailError != nil || usernameError != nil {
-		uuc.log.Error(context.Background(), "failed to check email or username existence", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to check email or username existence", map[string]any{
 			"email error":    emailError,
 			"username error": usernameError,
 		})
@@ -74,7 +74,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		}
 	}
 	if emailExists {
-		uuc.log.Info(context.Background(), "email already exists", map[string]interface{}{
+		uuc.log.Info(context.Background(), "email already exists", map[string]any{
 			"code": 409,
 		})
 		return pkg.Response{
@@ -83,7 +83,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		}
 	}
 	if usernameExists {
-		uuc.log.Info(context.Background(), "username already exists", map[string]interface{}{
+		uuc.log.Info(context.Background(), "username already exists", map[string]any{
 			"code": 409,
 		})
 		return pkg.Response{
@@ -94,7 +94,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 
 	hashPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to hash password", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to hash password", map[string]any{
 			"error": err,
 		})
 		return pkg.Response{
@@ -108,7 +108,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	user.IsVerified = false
 
 	if err := uuc.userRepo.Create(&user); err != nil {
-		uuc.log.Error(context.Background(), "failed to create user", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to create user", map[string]any{
 			"user":  user,
 			"error": err,
 		})
@@ -124,7 +124,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	go func() {
 		config, err := config.LoadConfig()
 		if err != nil {
-			uuc.log.Error(context.Background(), "failed to load config", map[string]interface{}{
+			uuc.log.Error(context.Background(), "failed to load config", map[string]any{
 				"error": err,
 			})
 			configCh <- nil
@@ -141,7 +141,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		}
 		mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
 		err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username)
-		uuc.log.Error(context.Background(), "failed to send verification email", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to send verification email", map[string]any{
 			"user_id": user.ID,
 			"error":   err,
 		})
@@ -156,7 +156,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	user, err := uuc.userRepo.GetByEmail(email)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to get user by email", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to get user by email", map[string]any{
 			"user_email": user.Email,
 			"error":      err,
 		})
@@ -167,7 +167,7 @@ func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	}
 
 	if user.VerificationCode != code {
-		uuc.log.Info(context.Background(), "invalid verification code", map[string]interface{}{
+		uuc.log.Info(context.Background(), "invalid verification code", map[string]any{
 			"user_id": user.ID,
 			"code":    400,
 		})
@@ -181,7 +181,7 @@ func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	user.VerificationCode = ""
 
 	if err := uuc.userRepo.Update(&user); err != nil {
-		uuc.log.Error(context.Background(), "failed to update user", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to update user", map[string]any{
 			"user_id": user.ID,
 			"error":   err,
 		})
@@ -200,7 +200,7 @@ func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Response) {
 	user, err := uuc.userRepo.GetByUsername(username)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to get user by username", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to get user by username", map[string]any{
 			"username": username,
 			"error":    err,
 		})
@@ -210,7 +210,7 @@ func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Respo
 		}
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		uuc.log.Error(context.Background(), "failed to compare hash and password", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to compare hash and password", map[string]any{
 			"user_id": user.ID,
 			"error":   err,
 		})
@@ -228,7 +228,7 @@ func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Respo
 func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Response {
 	user, err := uuc.userRepo.GetByID(userID)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to get user by id", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to get user by id", map[string]any{
 			"user_id": userID,
 			"error":   err,
 		})
@@ -240,7 +240,7 @@ func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Respon
 
 	hashPass, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to hash password", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to hash password", map[string]any{
 			"error": err,
 		})
 		return pkg.Response{
@@ -252,7 +252,7 @@ func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Respon
 	user.Password = string(hashPass)
 
 	if err := uuc.userRepo.Update(&user); err != nil {
-		uuc.log.Error(context.Background(), "failed to update user", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to update user", map[string]any{
 			"user_id": user.ID,
 			"error":   err,
 		})
@@ -263,7 +263,7 @@ func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Respon
 	}
 
 	if err := uuc.sessionRepo.DeleteAllSessions(user.ID); err != nil {
-		uuc.log.Error(context.Background(), "failed to delete sessions", map[string]interface{}{
+		uuc.log.Error(context.Background(), "failed to delete sessions", map[string]any{
 			"user_id": user.ID,
 			"error":   err,
 		})

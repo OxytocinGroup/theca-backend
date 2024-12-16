@@ -39,7 +39,7 @@ func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	bookmark.UserID = userID.(uint)
 	if err := c.ShouldBindJSON(&bookmark); err != nil {
-		bh.Logger.Info(c, "bad request", map[string]interface{}{"error": err})
+		bh.Logger.Info(c, "bad request", map[string]any{"error": err})
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",

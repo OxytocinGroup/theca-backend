@@ -89,10 +89,24 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 // @Success 200 {object} pkg.Response
 // @Failure 400 {object} pkg.Response
 // @Failure 401 {object} pkg.Response
+// @Failure 409 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
 // @Router /api/login [post]
 // @Security ApiKeyAuth
 func (uh *UserHandler) Login(c *gin.Context) {
+	session, err := c.Cookie("session_id")
+	if err == nil {
+		userID, err := uh.SessionUseCase.ValidateSession(session)
+		if err == nil {
+			uh.Logger.Info(context.Background(), "user tryed to login when already logged", map[string]any{"user_id": userID})
+			c.JSON(http.StatusConflict, pkg.Response{
+				Code:    http.StatusConflict,
+				Message: "user already logged in",
+			})
+			return
+		}
+	}
+
 	var req pkg.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, pkg.Response{
@@ -110,7 +124,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 
 	sessionID := uuid.New().String()
 	if err := uh.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(24*time.Hour)); err != nil {
-		uh.Logger.Error(context.Background(), "failed to create session", map[string]interface{}{
+		uh.Logger.Error(context.Background(), "failed to create session", map[string]any{
 			"error": err,
 		})
 		c.JSON(http.StatusInternalServerError, pkg.Response{
@@ -141,7 +155,7 @@ func (uh *UserHandler) Logout(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
 	if err := uh.SessionUseCase.DeleteAllSessions(userID); err != nil {
-		uh.Logger.Error(context.Background(), "failed to delete sessions", map[string]interface{}{
+		uh.Logger.Error(context.Background(), "failed to delete sessions", map[string]any{
 			"user_id": userID,
 			"error":   err,
 		})

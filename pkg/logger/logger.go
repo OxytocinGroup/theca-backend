@@ -9,10 +9,10 @@ import (
 )
 
 type Logger interface {
-	Debug(ctx context.Context, message string, fields map[string]interface{})
-	Info(ctx context.Context, message string, fields map[string]interface{})
-	Warn(ctx context.Context, message string, fields map[string]interface{})
-	Error(ctx context.Context, message string, fields map[string]interface{})
+	Debug(ctx context.Context, message string, fields map[string]any)
+	Info(ctx context.Context, message string, fields map[string]any)
+	Warn(ctx context.Context, message string, fields map[string]any)
+	Error(ctx context.Context, message string, fields map[string]any)
 }
 
 type LogrusLogger struct {
@@ -77,18 +77,18 @@ func (h *LevelHook) Fire(entry *logrus.Entry) error {
 	return err
 }
 
-func (l *LogrusLogger) Debug(ctx context.Context, message string, fields map[string]interface{}) {
+func (l *LogrusLogger) Debug(ctx context.Context, message string, fields map[string]any) {
 	l.log.WithFields(logrus.Fields(fields)).Debug(message)
 }
 
-func (l *LogrusLogger) Info(ctx context.Context, message string, fields map[string]interface{}) {
+func (l *LogrusLogger) Info(ctx context.Context, message string, fields map[string]any) {
 	l.log.WithFields(logrus.Fields(fields)).Info(message)
 }
 
-func (l *LogrusLogger) Warn(ctx context.Context, message string, fields map[string]interface{}) {
+func (l *LogrusLogger) Warn(ctx context.Context, message string, fields map[string]any) {
 	l.log.WithFields(logrus.Fields(fields)).Warn(message)
 }
 
-func (l *LogrusLogger) Error(ctx context.Context, message string, fields map[string]interface{}) {
+func (l *LogrusLogger) Error(ctx context.Context, message string, fields map[string]any) {
 	l.log.WithFields(logrus.Fields(fields)).Error(message)
 }

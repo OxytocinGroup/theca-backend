@@ -30,19 +30,17 @@ func NewBookmarkUseCase(bookmarkRepo repository.BookmarkRepository, log logger.L
 func (buc *bookmarkUseCase) CreateBookmark(bookmark domain.Bookmark) pkg.Response {
 	iconURL, err := parsers.FetchFavicon(bookmark.URL)
 	if err != nil {
-		buc.log.Error(context.Background(), "failed to fetch favicom", map[string]interface{}{"error": err})
+		buc.log.Error(context.Background(), "failed to fetch favicom", map[string]any{"error": err})
 	}
 	bookmark.IconURL = iconURL
 	err = buc.bookmarkRepo.CreateBookmark(&bookmark)
 	if err != nil {
-		buc.log.Error(context.Background(), "failed to create bookmark", map[string]interface{}{"error": err})
+		buc.log.Error(context.Background(), "failed to create bookmark", map[string]any{"error": err})
 		return pkg.Response{
 			Code:    500,
 			Message: "failed to create bookmark",
 		}
 	}
-
-
 
 	return pkg.Response{
 		Code:    http.StatusCreated,
