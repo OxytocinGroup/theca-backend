@@ -13,6 +13,7 @@ type SessionUseCase interface {
 	CreateSession(sessionID string, userID uint, expiresAt time.Time) error
 	ValidateSession(sessionID string) (uint, error)
 	DeleteSession(sessionID string) error
+	DeleteAllSessions(userID uint) error
 }
 
 type sessionUseCase struct {
@@ -48,4 +49,8 @@ func (suc *sessionUseCase) ValidateSession(sessionID string) (uint, error) {
 
 func (suc *sessionUseCase) DeleteSession(sessionID string) error {
 	return suc.sessionRepo.DeleteSessionByID(sessionID)
+}
+
+func (suc *sessionUseCase) DeleteAllSessions(userID uint) error {
+	return suc.sessionRepo.DeleteAllSessions(userID)
 }

@@ -24,7 +24,6 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 	engine.POST("/register", userHandler.Register)
 	engine.POST("/verify-email", userHandler.VerifyEmail)
 	engine.POST("/login", userHandler.Login)
-	engine.DELETE("/logout", userHandler.Logout)
 	// Auth middleware
 	api := engine.Group("/api", middleware.AuthMiddleware(userHandler.SessionUseCase))
 	api.GET("/protected", func(c *gin.Context) {
@@ -39,6 +38,7 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 	})
 	// api.POST("/change-pass", userHandler.ChangePass)
 	api.POST("/create-bookmark", bookmarkHandler.CreateBookmark)
+	api.DELETE("/logout", userHandler.Logout)
 	return &ServerHTTP{engine: engine}
 }
 

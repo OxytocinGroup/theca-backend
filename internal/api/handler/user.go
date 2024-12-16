@@ -63,7 +63,7 @@ func (uh *UserHandler) Register(c *gin.Context) {
 // @Success 200 {object} pkg.Response
 // @Failure 400 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
-// @Router /api/verify-email [post]
+// @Router /verify-email [post]
 // @Security ApiKeyAuth
 func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 	var verifyReq pkg.VerifyRequest
@@ -138,23 +138,16 @@ func (uh *UserHandler) Login(c *gin.Context) {
 // @Router /api/logout [delete]
 // @Security ApiKeyAuth
 func (uh *UserHandler) Logout(c *gin.Context) {
-	sessionID, err := c.Cookie("session_id")
-	if err != nil {
-		uh.Logger.Info(context.Background(), "not found cookie", nil)
-		c.JSON(http.StatusUnauthorized, pkg.Response{
-			Code:    http.StatusUnauthorized,
-			Message: "Unauthorized",
-		})
-		return
-	}
+	userID := c.GetUint("user_id")
 
-	if err := uh.SessionUseCase.DeleteSession(sessionID); err != nil {
-		uh.Logger.Error(context.Background(), "failed to delete session", map[string]interface{}{
-			"sessionID": sessionID,
+	if err := uh.SessionUseCase.DeleteAllSessions(userID); err != nil {
+		uh.Logger.Error(context.Background(), "failed to delete sessions", map[string]interface{}{
+			"user_id": userID,
+			"error":   err,
 		})
 		c.JSON(http.StatusInternalServerError, pkg.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "Failed to delete session",
+			Message: "failed to delete sessions",
 		})
 		return
 	}
