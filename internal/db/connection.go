@@ -37,7 +37,7 @@ func ConnectDatabase(cfg config.Config) Database {
 	}
 
 	db := &GormDatabase{Conn: conn}
-	if err := db.AutoMigrate(&domain.User{}, &domain.Session{}); err != nil {
+	if err := db.AutoMigrate(&domain.User{}, &domain.Session{}, &domain.Bookmark{}); err != nil {
 		return nil
 	}
 	return db

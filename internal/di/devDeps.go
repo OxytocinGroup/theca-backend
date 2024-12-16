@@ -42,6 +42,14 @@ func (d *DevDeps) UserUseCase(userRepo repository.UserRepository, sessionRepo re
 	return usecase.NewUserUseCase(userRepo, sessionRepo, log)
 }
 
+func (d *DevDeps) BookmarkRepository() repository.BookmarkRepository {
+	return repository.NewBookmarkRepository(d.Db)
+}
+
+func (d *DevDeps) BookmarkUseCase(bookmarkRepo repository.BookmarkRepository, log logger.Logger) usecase.BookmarkUseCase {
+	return usecase.NewBookmarkUseCase(bookmarkRepo, log)
+}
+
 func (d *DevDeps) Logger() logger.Logger {
 	return d.LogLogger
 }

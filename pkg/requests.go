@@ -19,3 +19,12 @@ type LoginRequest struct {
 type ChangePassRequest struct {
 	Password string `json:"password" binding:"required"`
 }
+
+type BookmarkRequest struct {
+	ID uint `json:"id"`
+	UserID uint `json:"user_id"`
+	Title string `json:"title"`
+	URL string `json:"url"`
+	ShowText bool `json:"show_text"`
+}
+

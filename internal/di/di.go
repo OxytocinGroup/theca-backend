@@ -13,8 +13,12 @@ type DepsProvider interface {
 	Database() *gorm.DB
 	UserRepository() repository.UserRepository
 	SessionRepository() repository.SessionRepository
+	BookmarkRepository() repository.BookmarkRepository
+
 	UserUseCase(repository.UserRepository, repository.SessionRepository, logger.Logger) usecase.UserUseCase
 	SessionUseCase(repository.SessionRepository, logger.Logger) usecase.SessionUseCase
+	BookmarkUseCase(repository.BookmarkRepository, logger.Logger) usecase.BookmarkUseCase
+
 	Logger() logger.Logger
 }
 
@@ -23,10 +27,13 @@ func InitializeAPI(provider DepsProvider) (*http.ServerHTTP, error) {
 
 	userRepo := provider.UserRepository()
 	sessionRepo := provider.SessionRepository()
+	bookmarkRepo := provider.BookmarkRepository()
 
 	userUC := provider.UserUseCase(userRepo, sessionRepo, log)
 	sessionUC := provider.SessionUseCase(sessionRepo, log)
+	bookmarkUC := provider.BookmarkUseCase(bookmarkRepo, log)
 
 	userHandler := handler.NewUserHandler(userUC, sessionUC, log)
-	return http.NewServerHTTP(userHandler), nil
+	bookmarkHandler := handler.NewBookmarkHandler(bookmarkUC, log)
+	return http.NewServerHTTP(userHandler, bookmarkHandler), nil
 }

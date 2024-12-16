@@ -14,7 +14,7 @@ type ServerHTTP struct {
 	engine *gin.Engine
 }
 
-func NewServerHTTP(userHandler *handler.UserHandler) *ServerHTTP {
+func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.BookmarkHandler) *ServerHTTP {
 	engine := gin.New()
 
 	engine.Use(gin.Logger())
@@ -38,7 +38,7 @@ func NewServerHTTP(userHandler *handler.UserHandler) *ServerHTTP {
 		c.JSON(200, gin.H{"message": "Welcome to your profile!", "user_id": userID})
 	})
 	// api.POST("/change-pass", userHandler.ChangePass)
-	
+	api.POST("/create-bookmark", bookmarkHandler.CreateBookmark)
 	return &ServerHTTP{engine: engine}
 }
 

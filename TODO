@@ -8,4 +8,6 @@
 - check session before login []
 - forgot password []
 - change password [done]
-- ввести верификацию под мидлвейр []
+- ввести верификацию под мидлвейр [?]
+- логаут должен быть со всех девайсов []
+- create bookmark [done]
