@@ -23,6 +23,7 @@ type UserUseCase interface {
 	VerifyEmail(email, code string) pkg.Response
 	Auth(username, password string) (*domain.User, pkg.Response)
 	ChangePass(userID string, newPassword string) pkg.Response
+	CheckVerificationStatus(userID uint) (bool, pkg.Response)
 }
 
 type userUseCase struct {
@@ -276,5 +277,19 @@ func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Respon
 	return pkg.Response{
 		Code:    http.StatusOK,
 		Message: "Password changed successfully",
+	}
+}
+
+func (uuc *userUseCase) CheckVerificationStatus(userID uint) (bool, pkg.Response) {
+	exists, err := uuc.userRepo.CheckVerificationStatus(userID)
+	if err != nil {
+		uuc.log.Error(context.Background(), "failed to check verification status", map[string]any{"user_id": userID, "error": err})
+		return false, pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to check verification status",
+		}
+	}
+	return exists, pkg.Response{
+		Code: http.StatusOK,
 	}
 }

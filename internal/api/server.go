@@ -34,6 +34,7 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 	api.GET("/bookmarks", bookmarkHandler.GetBookmarks)
 	api.DELETE("/bookmarks", bookmarkHandler.DeleteBookmark)
 	api.POST("/bookmarks", bookmarkHandler.UpdateBookmark)
+	api.GET("/user/verification-status", userHandler.CheckVerificationStatus)
 	return &ServerHTTP{engine: engine}
 }
 

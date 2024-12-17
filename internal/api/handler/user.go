@@ -206,3 +206,25 @@ func (uh *UserHandler) ChangePass(c *gin.Context) {
 	resp := uh.UserUseCase.ChangePass(fmt.Sprint(userID), req.Password)
 	c.JSON(resp.Code, resp)
 }
+
+// CheckVerificationStatus godoc
+// @Summary Check verification status of the user
+// @Description Check if the user's verification status is complete
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security CookieAuth
+// @Success 204 {object} pkg.Response "User verification status checked successfully, no content"
+// @Failure 500 {object} pkg.Response "Internal server error"
+// @Router /api/user/verification-status [get]
+func (uh *UserHandler) CheckVerificationStatus(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	exists, resp := uh.UserUseCase.CheckVerificationStatus(userID)
+	if resp.Code != 200 {
+		c.JSON(resp.Code, resp)
+		return
+	}
+	c.JSON(resp.Code, map[string]bool{
+		"status": exists,
+	})
+}

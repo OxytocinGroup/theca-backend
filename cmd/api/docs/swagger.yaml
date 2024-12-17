@@ -224,6 +224,27 @@ paths:
       summary: Logout a user
       tags:
       - User
+  /api/user/verification-status:
+    get:
+      consumes:
+      - application/json
+      description: Check if the user's verification status is complete
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User verification status checked successfully, no content
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Check verification status of the user
+      tags:
+      - User
   /bookmarks:
     delete:
       consumes:
