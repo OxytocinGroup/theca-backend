@@ -1,5 +1,8 @@
-- check for email verification []
-- forgot password []
+- update bookmark []
+- delete bookmark []
+- get bookmarks [done]
+- check for email verification [] status to front for badge
+- forgot password [] - big feature
 - ввести верификацию под мидлвейр [?]
 - check session before login [done]
 - cleaning code [done]

@@ -50,3 +50,9 @@ func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 	resp := bh.BookmarkUseCase.CreateBookmark(bookmark)
 	c.JSON(resp.Code, resp)
 }
+
+func (bh *BookmarkHandler) GetBookmarks(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	bookmarks, resp := bh.BookmarkUseCase.GetBookmarksByUser(userID)
+	c.JSON(resp.Code, bookmarks)
+}
