@@ -39,7 +39,7 @@ func NewUserHandler(usecase usecase.UserUseCase, sessionUseCase usecase.SessionU
 // @Failure 500 {object} pkg.Response
 // @Failure 400 {object} pkg.Response
 // @Router /register [post]
-// @Security ApiKeyAuth
+// @Security CookieAuth
 func (uh *UserHandler) Register(c *gin.Context) {
 	var userRequest pkg.UserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
@@ -64,7 +64,7 @@ func (uh *UserHandler) Register(c *gin.Context) {
 // @Failure 400 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
 // @Router /verify-email [post]
-// @Security ApiKeyAuth
+// @Security CookieAuth
 func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 	var verifyReq pkg.VerifyRequest
 	if err := c.ShouldBindJSON(&verifyReq); err != nil {
@@ -92,7 +92,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 // @Failure 409 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
 // @Router /api/login [post]
-// @Security ApiKeyAuth
+// @Security CookieAuth
 func (uh *UserHandler) Login(c *gin.Context) {
 	session, err := c.Cookie("session_id")
 	if err == nil {
@@ -150,7 +150,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 // @Failure 401 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
 // @Router /api/logout [delete]
-// @Security ApiKeyAuth
+// @Security CookieAuth
 func (uh *UserHandler) Logout(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -184,7 +184,7 @@ func (uh *UserHandler) Logout(c *gin.Context) {
 // @Failure 401 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
 // @Router /api/change-pass [post]
-// @Security ApiKeyAuth
+// @Security CookieAuth
 func (uh *UserHandler) ChangePass(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

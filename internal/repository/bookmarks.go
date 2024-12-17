@@ -10,6 +10,7 @@ type BookmarkRepository interface {
 	GetBookmarksByUser(userID uint) ([]domain.Bookmark, error)
 	UpdateBookmark(bookmark *domain.Bookmark) error
 	DeleteBookmarkByID(bookmarkID uint) error
+	GetBookmarkOwner(bookmarkID uint) (uint, error)
 }
 
 type bookmarkDatabase struct {
@@ -39,4 +40,10 @@ func (bdb *bookmarkDatabase) UpdateBookmark(bookmark *domain.Bookmark) error {
 
 func (bdb *bookmarkDatabase) DeleteBookmarkByID(bookmarkID uint) error {
 	return bdb.DB.Model(&domain.Bookmark{}).Where("id = ?", bookmarkID).Delete(&domain.Bookmark{}).Error
+}
+
+func (bdb *bookmarkDatabase) GetBookmarkOwner(bookmarkID uint) (uint, error) {
+	var userID uint
+	err := bdb.DB.Model(&domain.Bookmark{}).Where("id = ?", bookmarkID).Pluck("user_id", &userID).Error
+	return userID, err
 }

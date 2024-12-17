@@ -66,6 +66,33 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/bookmarks:
+    get:
+      consumes:
+      - application/json
+      description: Fetch all bookmarks associated with the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bookmarks
+          schema:
+            items:
+              $ref: '#/definitions/domain.Bookmark'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Get bookmarks by user ID
+      tags:
+      - Bookmark
   /api/change-pass:
     post:
       description: Changes the user's password and deleting all sessions for this
@@ -97,7 +124,7 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
       security:
-      - ApiKeyAuth: []
+      - CookieAuth: []
       summary: Change user password
       tags:
       - User
@@ -128,7 +155,7 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
       security:
-      - ApiKeyAuth: []
+      - CookieAuth: []
       summary: Create a new user bookmark
       tags:
       - Bookmark
@@ -169,7 +196,7 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
       security:
-      - ApiKeyAuth: []
+      - CookieAuth: []
       summary: User login
       tags:
       - User
@@ -193,10 +220,48 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
       security:
-      - ApiKeyAuth: []
+      - CookieAuth: []
       summary: Logout a user
       tags:
       - User
+  /bookmarks:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific bookmark associated with the user based on the
+        bookmark ID
+      parameters:
+      - description: Request body with the bookmark ID to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Bookmark'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted the bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request, invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "403":
+          description: Forbidden, the user does not have permission to delete this
+            bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Delete a bookmark by ID
+      tags:
+      - Bookmark
   /register:
     post:
       consumes:
@@ -229,7 +294,7 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
       security:
-      - ApiKeyAuth: []
+      - CookieAuth: []
       summary: Register a new user
       tags:
       - User
@@ -261,7 +326,7 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
       security:
-      - ApiKeyAuth: []
+      - CookieAuth: []
       summary: Verify email
       tags:
       - User

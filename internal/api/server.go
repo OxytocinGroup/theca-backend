@@ -24,22 +24,15 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 	engine.POST("/register", userHandler.Register)
 	engine.POST("/verify-email", userHandler.VerifyEmail)
 	engine.POST("/login", userHandler.Login)
+
 	// Auth middleware
 	api := engine.Group("/api", middleware.AuthMiddleware(userHandler.SessionUseCase))
-	api.GET("/protected", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		if !exists {
-			c.JSON(401, gin.H{
-				"message": "Unauthorized",
-			})
-			return
-		}
-		c.JSON(200, gin.H{"message": "Welcome to your profile!", "user_id": userID})
-	})
 	// api.POST("/change-pass", userHandler.ChangePass)
+
 	api.POST("/create-bookmark", bookmarkHandler.CreateBookmark)
 	api.DELETE("/logout", userHandler.Logout)
 	api.GET("/bookmarks", bookmarkHandler.GetBookmarks)
+	api.DELETE("/bookmarks", bookmarkHandler.DeleteBookmark)
 	return &ServerHTTP{engine: engine}
 }
 

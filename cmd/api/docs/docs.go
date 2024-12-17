@@ -15,11 +15,54 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/bookmarks": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Fetch all bookmarks associated with the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmark"
+                ],
+                "summary": "Get bookmarks by user ID",
+                "responses": {
+                    "200": {
+                        "description": "List of bookmarks",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Bookmark"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/change-pass": {
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Changes the user's password and deleting all sessions for this user",
@@ -73,7 +116,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "CookieAuth": []
                     }
                 ],
                 "consumes": [
@@ -123,7 +166,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Authenticates a user and initiates a session by setting a session cookie.",
@@ -186,7 +229,7 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Logout a user by deleting the session and removing the session cookie.",
@@ -219,11 +262,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/bookmarks": {
+            "delete": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Delete a specific bookmark associated with the user based on the bookmark ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookmark"
+                ],
+                "summary": "Delete a bookmark by ID",
+                "parameters": [
+                    {
+                        "description": "Request body with the bookmark ID to delete",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.Bookmark"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully deleted the bookmark",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request, invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden, the user does not have permission to delete this bookmark",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Register a new user",
@@ -280,7 +380,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "CookieAuth": []
                     }
                 ],
                 "description": "Verify email",

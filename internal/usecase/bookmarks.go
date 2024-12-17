@@ -14,6 +14,7 @@ import (
 type BookmarkUseCase interface {
 	CreateBookmark(bookmark domain.Bookmark) pkg.Response
 	GetBookmarksByUser(userID uint) ([]domain.Bookmark, pkg.Response)
+	DeleteBookmark(userID, bookmarkID uint) pkg.Response
 }
 
 type bookmarkUseCase struct {
@@ -63,5 +64,46 @@ func (buc *bookmarkUseCase) GetBookmarksByUser(userID uint) ([]domain.Bookmark, 
 	}
 	return bookmarks, pkg.Response{
 		Code: http.StatusOK,
+	}
+}
+
+func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response {
+	bookmarkOwner, err := buc.bookmarkRepo.GetBookmarkOwner(bookmarkID)
+	if err != nil {
+		buc.log.Error(context.Background(), "failed to get bookmark owner", map[string]any{
+			"bookmarkID": bookmarkID,
+			"error":      err,
+		})
+		return pkg.Response{
+			Code:    500,
+			Message: "failed to get bookmark owner",
+		}
+	}
+
+	if userID != bookmarkOwner {
+		buc.log.Info(context.Background(), "bookmark belongs to another user", map[string]any{
+			"userID":     userID,
+			"ownerID":    bookmarkOwner,
+			"bookmarkID": bookmarkID,
+		})
+		return pkg.Response{
+			Code:    http.StatusForbidden,
+			Message: "bookmark belongs to another user",
+		}
+	}
+
+	err = buc.bookmarkRepo.DeleteBookmarkByID(bookmarkID)
+	if err != nil {
+		buc.log.Error(context.Background(), "failed to delete bookmark", map[string]any{
+			"bookmarkID": bookmarkID,
+			"error":      err,
+		})
+		return pkg.Response{
+			Code:    500,
+			Message: "failed to delete bookmark",
+		}
+	}
+	return pkg.Response{
+		Code: 200,
 	}
 }
