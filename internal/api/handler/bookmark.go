@@ -84,8 +84,36 @@ func (bh *BookmarkHandler) DeleteBookmark(c *gin.Context) {
 	if err := c.ShouldBindJSON(&bookmark); err != nil {
 		bh.Logger.Info(c, "bad request", map[string]any{"error": err})
 		c.JSON(http.StatusBadRequest, nil)
+		return
 	}
 
 	resp := bh.BookmarkUseCase.DeleteBookmark(userID, bookmark.ID)
+	c.JSON(resp.Code, resp)
+}
+
+// UpdateBookmark godoc
+// @Summary Update a bookmark by ID
+// @Description Update a specific bookmark associated with the user based on the bookmark ID
+// @Tags Bookmark
+// @Accept json
+// @Produce json
+// @Security CookieAuth
+// @Param request body domain.Bookmark true "Request body with the bookmark ID to update"
+// @Success 200 {object} pkg.Response "Successfully updated the bookmark"
+// @Failure 400 {object} pkg.Response "Bad request, invalid input"
+// @Failure 403 {object} pkg.Response "Forbidden, the user does not have permission to update this bookmark"
+// @Failure 500 {object} pkg.Response "Internal server error"
+// @Router /bookmarks [post]
+func (bh *BookmarkHandler) UpdateBookmark(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	var bookmark domain.Bookmark
+
+	if err := c.ShouldBindJSON(&bookmark); err != nil {
+		bh.Logger.Info(c, "bad request", map[string]any{"error": err})
+		c.JSON(http.StatusBadRequest, nil)
+		return
+	}
+
+	resp := bh.BookmarkUseCase.UpdateBookmark(userID, &bookmark)
 	c.JSON(resp.Code, resp)
 }

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"net/http"
+	"sync"
 
 	"github.com/OxytocinGroup/theca-backend/internal/domain"
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
@@ -15,6 +16,7 @@ type BookmarkUseCase interface {
 	CreateBookmark(bookmark domain.Bookmark) pkg.Response
 	GetBookmarksByUser(userID uint) ([]domain.Bookmark, pkg.Response)
 	DeleteBookmark(userID, bookmarkID uint) pkg.Response
+	UpdateBookmark(userID uint, bookmark *domain.Bookmark) pkg.Response
 }
 
 type bookmarkUseCase struct {
@@ -101,6 +103,59 @@ func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response
 		return pkg.Response{
 			Code:    500,
 			Message: "failed to delete bookmark",
+		}
+	}
+	return pkg.Response{
+		Code: 200,
+	}
+}
+
+func (buc *bookmarkUseCase) UpdateBookmark(userID uint, bookmark *domain.Bookmark) pkg.Response {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		iconURL, err := parsers.FetchFavicon(bookmark.URL)
+		if err != nil {
+			buc.log.Error(context.Background(), "failed to fetch favicon", map[string]any{"error": err})
+		}
+		bookmark.IconURL = iconURL
+	}()
+
+	bookmarkOwner, err := buc.bookmarkRepo.GetBookmarkOwner(bookmark.ID)
+	if err != nil {
+		buc.log.Error(context.Background(), "failed to get bookmark owner", map[string]any{
+			"bookmarkID": bookmark.ID,
+			"error":      err,
+		})
+		return pkg.Response{
+			Code:    500,
+			Message: "failed to get bookmark owner",
+		}
+	}
+
+	if userID != bookmarkOwner {
+		buc.log.Info(context.Background(), "bookmark belongs to another user", map[string]any{
+			"userID":     userID,
+			"ownerID":    bookmarkOwner,
+			"bookmarkID": bookmark.ID,
+		})
+		return pkg.Response{
+			Code:    http.StatusForbidden,
+			Message: "bookmark belongs to another user",
+		}
+	}
+	wg.Wait()
+
+	err = buc.bookmarkRepo.UpdateBookmark(bookmark)
+	if err != nil {
+		buc.log.Error(context.Background(), "failed to update bookmark", map[string]any{
+			"bookmarkID": bookmark.ID,
+			"error":      err,
+		})
+		return pkg.Response{
+			Code:    500,
+			Message: "failed to update bookmark",
 		}
 	}
 	return pkg.Response{

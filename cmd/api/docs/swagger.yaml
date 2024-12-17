@@ -262,6 +262,43 @@ paths:
       summary: Delete a bookmark by ID
       tags:
       - Bookmark
+    post:
+      consumes:
+      - application/json
+      description: Update a specific bookmark associated with the user based on the
+        bookmark ID
+      parameters:
+      - description: Request body with the bookmark ID to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Bookmark'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated the bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request, invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "403":
+          description: Forbidden, the user does not have permission to update this
+            bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Update a bookmark by ID
+      tags:
+      - Bookmark
   /register:
     post:
       consumes:
