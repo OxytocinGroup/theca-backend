@@ -1,9 +1,10 @@
-- update bookmark []
-- delete bookmark []
-- get bookmarks [done]
-- check for email verification [] status to front for badge
 - forgot password [] - big feature
-- ввести верификацию под мидлвейр [?]
+- check for email verification [] status to front for badge
+- update bookmark []
+- верификация через ссылку []
+
+- delete bookmark [done]
+- get bookmarks [done]
 - check session before login [done]
 - cleaning code [done]
 - refactor di [done]
