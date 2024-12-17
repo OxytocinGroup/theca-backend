@@ -1,8 +1,8 @@
 - forgot password [] - big feature
 - check for email verification [] status to front for badge
-- update bookmark []
 - верификация через ссылку []
 
+- update bookmark [done]
 - delete bookmark [done]
 - get bookmarks [done]
 - check session before login [done]
