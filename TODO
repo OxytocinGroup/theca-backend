@@ -1,6 +1,6 @@
-- forgot password [] - big feature
 - верификация через ссылку []
 
+- forgot password [done] - big feature
 - check for email verification [done] status to front for badge
 - update bookmark [done]
 - delete bookmark [done]
@@ -15,3 +15,10 @@
 - change password [done]
 - логаут должен быть со всех девайсов [done]
 - create bookmark [done]
+
+- fix loadconfig in user usecase
+- fix sendEmail.go
+- fix template
+- add logger to errors
+- write docs to new functions
+- пофиксить хуйню когда юзера не нашли в дб а мы отдаем 500

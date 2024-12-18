@@ -42,3 +42,31 @@ func (m *Mail) SendVerificationEmail(cfg *config.Config, email, code, username s
 	_, err = client.Emails.Send(params)
 	return err
 }
+
+func SendResetEmail(cfg *config.Config, email, username, token string) error {
+	template := template.New("resetEmail.html")
+
+	template, err := template.ParseFiles("internal/utils/email/resetEmail.html")
+	if err != nil {
+		return err
+	}
+
+	var tpl bytes.Buffer
+	if err := template.Execute(&tpl, Mail{Username: username, Code: token}); err != nil {
+		return err
+	}
+
+	apiKey := cfg.SMTPAPI
+
+	client := resend.NewClient(apiKey)
+
+	params := &resend.SendEmailRequest{
+		From:    "Theca <no-reply@theca.oxytocingroup.com>",
+		To:      []string{email},
+		Html:    tpl.String(),
+		Subject: "Theca | Reset Password",
+	}
+
+	_, err = client.Emails.Send(params)
+	return err
+}

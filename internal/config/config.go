@@ -19,10 +19,12 @@ type Config struct {
 	LogLevel string `mapstructure:"LOG_LEVEL"`
 
 	Environment string `mapstructure:"ENVIRONMENT"`
+
+	AppURL string `mapstructure:"APP_URL"`
 }
 
 var envs = []string{
-	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_API", "ENVIRONMENT", "LOG_LEVEL",
+	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_API", "ENVIRONMENT", "LOG_LEVEL", "APP_URL",
 }
 
 func LoadConfig() (Config, error) {

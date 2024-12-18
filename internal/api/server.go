@@ -24,6 +24,8 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 	engine.POST("/register", userHandler.Register)
 	engine.POST("/verify-email", userHandler.VerifyEmail)
 	engine.POST("/login", userHandler.Login)
+	engine.POST("/forgot-password", userHandler.RequestPasswordReset)
+	engine.POST("/reset-password", userHandler.ResetPassword)
 
 	// Auth middleware
 	api := engine.Group("/api", middleware.AuthMiddleware(userHandler.SessionUseCase))

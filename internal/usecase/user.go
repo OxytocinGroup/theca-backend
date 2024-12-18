@@ -7,13 +7,15 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
-	utils "github.com/OxytocinGroup/theca-backend/internal/api/utils/email"
 	"github.com/OxytocinGroup/theca-backend/internal/config"
 	"github.com/OxytocinGroup/theca-backend/internal/domain"
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
+	utils "github.com/OxytocinGroup/theca-backend/internal/utils/email"
+	"github.com/OxytocinGroup/theca-backend/internal/utils/token"
 	"github.com/OxytocinGroup/theca-backend/pkg"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 )
@@ -24,6 +26,8 @@ type UserUseCase interface {
 	Auth(username, password string) (*domain.User, pkg.Response)
 	ChangePass(userID string, newPassword string) pkg.Response
 	CheckVerificationStatus(userID uint) (bool, pkg.Response)
+	GetResetPassword(email string) pkg.Response
+	ResetPassword(token, password string) pkg.Response
 }
 
 type userUseCase struct {
@@ -291,5 +295,79 @@ func (uuc *userUseCase) CheckVerificationStatus(userID uint) (bool, pkg.Response
 	}
 	return exists, pkg.Response{
 		Code: http.StatusOK,
+	}
+}
+
+func (uuc *userUseCase) GetResetPassword(email string) pkg.Response {
+	user, err := uuc.userRepo.GetByEmail(email)
+	if err != nil {
+		return pkg.Response{Code: http.StatusNotFound, Message: "user not found"}
+	}
+
+	user.ResetToken, err = token.GenerateToken()
+	if err != nil {
+		uuc.log.Error(context.Background(), "failed to generate token", map[string]any{"error": err})
+		return pkg.Response{Code: 500, Message: "failed to generate reset token"}
+	}
+	user.ResetTokenExpire = time.Now().Add(24 * time.Hour)
+
+	if err := uuc.userRepo.Update(&user); err != nil {
+		uuc.log.Error(context.Background(), "failed to update user", map[string]any{
+			"user_id": user.ID,
+			"error":   err,
+		})
+		return pkg.Response{Code: 500, Message: "failed to update user"}
+	}
+	cfg, _ := config.LoadConfig()
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", cfg.AppURL, user.ResetToken)
+	err = utils.SendResetEmail(&cfg, user.Email, user.Username, resetLink)
+	if err != nil {
+		uuc.log.Error(context.Background(), "failed to send verification email", map[string]any{
+			"user_id": user.ID,
+			"error":   err,
+		})
+		return pkg.Response{Code: 500, Message: "unable to send reset email"}
+	}
+
+	return pkg.Response{
+		Code:    200,
+		Message: "email sent on your email",
+	}
+}
+
+func (uuc *userUseCase) ResetPassword(token, password string) pkg.Response {
+	user, err := uuc.userRepo.GetByToken(token)
+	if err != nil {
+		uuc.log.Error(context.Background(), "user not found", map[string]any{
+			"token": token,
+			"error": err,
+		})
+		return pkg.Response{Code: http.StatusNotFound, Message: "not found user by token"}
+	}
+	if user.ResetTokenExpire.Before(time.Now()) {
+		return pkg.Response{Code: http.StatusBadRequest, Message: "token expired"}
+	}
+
+	hashPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		uuc.log.Error(context.Background(), "failed to hash password", map[string]any{
+			"error": err,
+		})
+		return pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to hash password",
+		}
+	}
+
+	user.Password = string(hashPass)
+	user.ResetToken = ""
+	if err := uuc.userRepo.Update(&user); err != nil {
+		uuc.log.Error(context.Background(), "failed to update user", map[string]any{"user_id": user.ID, "error": err})
+		return pkg.Response{Code: 500, Message: "failed to update user"}
+	}
+
+	return pkg.Response{
+		Code:    200,
+		Message: "password was reset successfully",
 	}
 }

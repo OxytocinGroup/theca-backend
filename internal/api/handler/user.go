@@ -228,3 +228,30 @@ func (uh *UserHandler) CheckVerificationStatus(c *gin.Context) {
 		"status": exists,
 	})
 }
+
+func (uh *UserHandler) RequestPasswordReset(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, pkg.Response{Code: 400, Message: "bad request"})
+		return
+	}
+
+	resp := uh.UserUseCase.GetResetPassword(req.Email)
+	c.JSON(resp.Code, resp)
+}
+
+func (uh *UserHandler) ResetPassword(c *gin.Context) {
+	var req struct {
+		Token    string `json:"token" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, pkg.Response{Code: 400, Message: "bad request"})
+		return
+	}
+
+	resp := uh.UserUseCase.ResetPassword(req.Token, req.Password)
+	c.JSON(resp.Code, resp)
+}
