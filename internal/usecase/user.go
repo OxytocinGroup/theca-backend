@@ -34,13 +34,15 @@ type userUseCase struct {
 	userRepo    repository.UserRepository
 	sessionRepo repository.SessionRepository
 	log         logger.Logger
+	cfg         config.Config
 }
 
-func NewUserUseCase(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, log logger.Logger) UserUseCase {
+func NewUserUseCase(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, cfg config.Config, log logger.Logger) UserUseCase {
 	return &userUseCase{
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
 		log:         log,
+		cfg:         cfg,
 	}
 }
 
@@ -123,34 +125,16 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		}
 	}
 
-	configCh := make(chan *config.Config)
-	mailErrorCh := make(chan error)
-
-	go func() {
-		config, err := config.LoadConfig()
-		if err != nil {
-			uuc.log.Error(context.Background(), "failed to load config", map[string]any{
-				"error": err,
-			})
-			configCh <- nil
-			return
-		}
-		configCh <- &config
-	}()
-
-	go func() {
-		config := <-configCh
-		if config == nil {
-			mailErrorCh <- fmt.Errorf("failed to load config")
-			return
-		}
+	go func(config *config.Config) {
 		mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
 		err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username)
-		uuc.log.Error(context.Background(), "failed to send verification email", map[string]any{
-			"user_id": user.ID,
-			"error":   err,
-		})
-	}()
+		if err != nil {
+			uuc.log.Error(context.Background(), "failed to send verification email", map[string]any{
+				"user_id": user.ID,
+				"error":   err,
+			})
+		}
+	}(&uuc.cfg)
 
 	return pkg.Response{
 		Code:    http.StatusCreated,
@@ -318,9 +302,9 @@ func (uuc *userUseCase) GetResetPassword(email string) pkg.Response {
 		})
 		return pkg.Response{Code: 500, Message: "failed to update user"}
 	}
-	cfg, _ := config.LoadConfig()
-	resetLink := fmt.Sprintf("%s/reset-password?token=%s", cfg.AppURL, user.ResetToken)
-	err = utils.SendResetEmail(&cfg, user.Email, user.Username, resetLink)
+
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", uuc.cfg.AppURL, user.ResetToken)
+	err = utils.SendResetEmail(&uuc.cfg, user.Email, user.Username, resetLink)
 	if err != nil {
 		uuc.log.Error(context.Background(), "failed to send verification email", map[string]any{
 			"user_id": user.ID,
