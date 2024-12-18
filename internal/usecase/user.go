@@ -161,13 +161,13 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 	user, err := uuc.userRepo.GetByEmail(email)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to get user by email", map[string]any{
+		uuc.log.Info(context.Background(), "failed to get user by email", map[string]any{
 			"user_email": user.Email,
 			"error":      err,
 		})
 		return pkg.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to get user by email",
+			Code:    http.StatusNotFound,
+			Message: "User not found",
 		}
 	}
 
@@ -205,13 +205,13 @@ func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
 func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Response) {
 	user, err := uuc.userRepo.GetByUsername(username)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to get user by username", map[string]any{
+		uuc.log.Info(context.Background(), "failed to get user by username", map[string]any{
 			"username": username,
 			"error":    err,
 		})
 		return nil, pkg.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to get user by username",
+			Code:    http.StatusNotFound,
+			Message: "Not found user by username",
 		}
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
@@ -233,13 +233,13 @@ func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Respo
 func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Response {
 	user, err := uuc.userRepo.GetByID(userID)
 	if err != nil {
-		uuc.log.Error(context.Background(), "failed to get user by id", map[string]any{
+		uuc.log.Info(context.Background(), "failed to get user by id", map[string]any{
 			"user_id": userID,
 			"error":   err,
 		})
 		return pkg.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to get user by username",
+			Code:    http.StatusNotFound,
+			Message: "Not found user by username",
 		}
 	}
 
