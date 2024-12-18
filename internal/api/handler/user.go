@@ -39,7 +39,6 @@ func NewUserHandler(usecase usecase.UserUseCase, sessionUseCase usecase.SessionU
 // @Failure 500 {object} pkg.Response
 // @Failure 400 {object} pkg.Response
 // @Router /register [post]
-// @Security CookieAuth
 func (uh *UserHandler) Register(c *gin.Context) {
 	var userRequest pkg.UserRequest
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
@@ -54,17 +53,17 @@ func (uh *UserHandler) Register(c *gin.Context) {
 }
 
 // @VerifyEmail GoDoc
-// @Summary Verify email
-// @Description Verify email
+// @Summary Verify email address
+// @Description This endpoint allows a user to verify their email address by providing the email and verification code.
 // @Tags User
 // @Accept json
 // @Produce json
 // @Param verifyReq body pkg.VerifyRequest true "VerifyRequest"
-// @Success 200 {object} pkg.Response
-// @Failure 400 {object} pkg.Response
-// @Failure 500 {object} pkg.Response
+// @Success 200 {object} pkg.Response "Email verified successfully"
+// @Failure 400 {object} pkg.Response "Bad request - Invalid input"
+// @Failure 404 {object} pkg.Response "Email or verification code not found"
+// @Failure 500 {object} pkg.Response "Internal server error"
 // @Router /verify-email [post]
-// @Security CookieAuth
 func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 	var verifyReq pkg.VerifyRequest
 	if err := c.ShouldBindJSON(&verifyReq); err != nil {
@@ -81,18 +80,17 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 
 // @Login GoDoc
 // @Summary User login
-// @Description Authenticates a user and initiates a session by setting a session cookie.
+// @Description This endpoint allows a user to log in using their username and password. If already logged in, a conflict response is returned.
 // @Tags User
-// @Accept json
-// @Produce json
-// @Param user body pkg.LoginRequest true "User"
-// @Success 200 {object} pkg.Response
-// @Failure 400 {object} pkg.Response
-// @Failure 401 {object} pkg.Response
-// @Failure 409 {object} pkg.Response
-// @Failure 500 {object} pkg.Response
-// @Router /api/login [post]
-// @Security CookieAuth
+// @Accept  json
+// @Produce  json
+// @Param request body pkg.LoginRequest true "Username and password"
+// @Success 200 {object} pkg.Response "Login successful"
+// @Failure 400 {object} pkg.Response "Bad request - Invalid input"
+// @Failure 401 {object} pkg.Response "Unauthorized - Invalid username or password"
+// @Failure 409 {object} pkg.Response "Conflict - User already logged in"
+// @Failure 500 {object} pkg.Response "Internal server error"
+// @Router /login [post]
 func (uh *UserHandler) Login(c *gin.Context) {
 	session, err := c.Cookie("session_id")
 	if err == nil {
@@ -142,15 +140,14 @@ func (uh *UserHandler) Login(c *gin.Context) {
 }
 
 // @Logout GoDoc
-// @Summary Logout a user
-// @Description Logout a user by deleting the session and removing the session cookie.
+// @Summary User logout
+// @Description This endpoint allows a user to log out by deleting all active sessions associated with the user.
 // @Tags User
-// @Produce json
-// @Success 200 {object} pkg.Response
-// @Failure 401 {object} pkg.Response
-// @Failure 500 {object} pkg.Response
-// @Router /api/logout [delete]
-// @Security CookieAuth
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} pkg.Response "Logout successful"
+// @Failure 500 {object} pkg.Response "Internal server error"
+// @Router /logout [post]
 func (uh *UserHandler) Logout(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -229,6 +226,18 @@ func (uh *UserHandler) CheckVerificationStatus(c *gin.Context) {
 	})
 }
 
+// @RequestPasswordReset godoc
+// @Summary Request a password reset
+// @Description This endpoint allows a user to request a password reset by providing their email.
+// @Tags User
+// @Accept  json
+// @Produce  json
+// @Param request body struct{email string} true "User email"
+// @Success 200 {object} pkg.Response "Password reset email sent"
+// @Failure 400 {object} pkg.Response "Bad request - Invalid input"
+// @Failure 404 {object} pkg.Response "Email not found"
+// @Failure 500 {object} pkg.Response "Internal server error"
+// @Router /password-reset/request [post]
 func (uh *UserHandler) RequestPasswordReset(c *gin.Context) {
 	var req struct {
 		Email string `json:"email" binding:"required,email"`
@@ -242,6 +251,18 @@ func (uh *UserHandler) RequestPasswordReset(c *gin.Context) {
 	c.JSON(resp.Code, resp)
 }
 
+// ResetPassword godoc
+// @Summary Reset user password
+// @Description This endpoint allows a user to reset their password by providing a valid reset token and a new password.
+// @Tags User
+// @Accept  json
+// @Produce  json
+// @Param request body struct{token string; password string} true "Reset token and new password"
+// @Success 200 {object} pkg.Response "Password reset successfully"
+// @Failure 400 {object} pkg.Response "Bad request - Invalid input"
+// @Failure 404 {object} pkg.Response "Reset token not found or expired"
+// @Failure 500 {object} pkg.Response "Internal server error"
+// @Router /password-reset/reset [post]
 func (uh *UserHandler) ResetPassword(c *gin.Context) {
 	var req struct {
 		Token    string `json:"token" binding:"required"`

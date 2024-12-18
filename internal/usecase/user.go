@@ -126,8 +126,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	}
 
 	go func(config *config.Config) {
-		mail := utils.Mail{Email: user.Email, Code: user.VerificationCode, Username: user.Username}
-		err := mail.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username)
+		err := utils.SendVerificationEmail(config, user.Email, user.VerificationCode, user.Username)
 		if err != nil {
 			uuc.log.Error(context.Background(), "failed to send verification email", map[string]any{
 				"user_id": user.ID,

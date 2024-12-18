@@ -15,7 +15,7 @@ type Mail struct {
 	Code     string
 }
 
-func (m *Mail) SendVerificationEmail(cfg *config.Config, email, code, username string) error {
+func SendVerificationEmail(cfg *config.Config, email, code, username string) error {
 	template := template.New("verifyMail.html")
 
 	template, err := template.ParseFiles("internal/utils/email/verifyMail.html")

@@ -1,9 +1,8 @@
 - верификация через ссылку []
-- fix sendEmail.go []
-- fix template []
-- add logger to errors []
+- check logger in errors []
 - write docs to new functions []
 
+- fix sendEmail.go [done]
 - fix loadconfig in user usecase [done]
 - пофиксить хуйню когда юзера не нашли в дб а мы отдаем 500 [done]
 - forgot password [done] - big feature

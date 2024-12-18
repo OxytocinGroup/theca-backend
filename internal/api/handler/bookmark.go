@@ -22,16 +22,18 @@ func NewBookmarkHandler(usecase usecase.BookmarkUseCase, log logger.Logger) *Boo
 }
 
 // @CreateBookmark GoDoc
-// @Summary Create a new user bookmark
+// @Summary Create a bookmark
+// @Description This endpoint allows an authenticated user to create a new bookmark.
 // @Tags Bookmark
-// @Accept json
-// @Produce json
-// @Param user body domain.Bookmark true "Bookmark"
-// @Success 201 {object} pkg.Response
-// @Failure 500 {object} pkg.Response
-// @Failure 400 {object} pkg.Response
-// @Router /api/create-bookmark [post]
+// @Accept  json
+// @Produce  json
+// @Param request body domain.Bookmark true "Bookmark details"
+// @Success 201 {object} pkg.Response "Bookmark created successfully"
+// @Failure 400 {object} pkg.Response "Bad request - Invalid input"
+// @Failure 401 {object} pkg.Response "Unauthorized - User not authenticated"
+// @Failure 500 {object} pkg.Response "Internal server error"
 // @Security CookieAuth
+// @Router /bookmarks [post]
 func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 	var bookmark domain.Bookmark
 
@@ -51,11 +53,9 @@ func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 // @Summary Get bookmarks by user ID
 // @Description Fetch all bookmarks associated with the current user
 // @Tags Bookmark
-// @Accept json
 // @Produce json
 // @Security CookieAuth
 // @Success 200 {array} domain.Bookmark "List of bookmarks"
-// @Failure 400 {object} pkg.Response "Bad request"
 // @Failure 500 {object} pkg.Response "Internal server error"
 // @Router /api/bookmarks [get]
 func (bh *BookmarkHandler) GetBookmarks(c *gin.Context) {
