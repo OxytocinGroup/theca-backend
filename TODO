@@ -1,7 +1,7 @@
 - верификация через ссылку []
 - check logger in errors []
-- fix req structures
 
+- fix req structures [done]
 - write docs to new functions [done]
 - fix sendEmail.go [done]
 - fix loadconfig in user usecase [done]
