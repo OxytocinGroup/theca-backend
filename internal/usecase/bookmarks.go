@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"net/http"
-	"sync"
 
 	"github.com/OxytocinGroup/theca-backend/internal/domain"
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
@@ -32,18 +31,7 @@ func NewBookmarkUseCase(bookmarkRepo repository.BookmarkRepository, log logger.L
 }
 
 func (buc *bookmarkUseCase) CreateBookmark(bookmark domain.Bookmark) pkg.Response {
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		iconURL, err := parsers.FetchFavicon(bookmark.URL)
-		if err != nil {
-			buc.log.Error(context.Background(), "Create bookmark: failed to fetch favicon", map[string]any{"error": err})
-			bookmark.IconURL = iconURL
-		}
-	}()
 
-	wg.Wait()
 	err := buc.bookmarkRepo.CreateBookmark(&bookmark)
 	if err != nil {
 		buc.log.Error(context.Background(), "Create bookmark: failed to create bookmark", map[string]any{"error": err})
@@ -52,6 +40,19 @@ func (buc *bookmarkUseCase) CreateBookmark(bookmark domain.Bookmark) pkg.Respons
 			Message: "failed to create bookmark",
 		}
 	}
+
+	go func() {
+		iconURL, err := parsers.FetchFavicon(bookmark.URL)
+		if err != nil {
+			buc.log.Error(context.Background(), "Create bookmark: failed to fetch favicon", map[string]any{"error": err})
+			return
+		}
+		bookmark.IconURL = iconURL
+		if err := buc.bookmarkRepo.UploadBookmarkFavicon(bookmark.ID, iconURL); err != nil {
+			buc.log.Error(context.Background(), "Create bookmark: failed to upload favicon url to bookmark", map[string]any{"error": err})
+			return
+		}
+	}()
 
 	buc.log.Info(context.Background(), "Create bookmark: created succesfully", map[string]any{})
 	return pkg.Response{
@@ -123,16 +124,6 @@ func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response
 }
 
 func (buc *bookmarkUseCase) UpdateBookmark(userID uint, bookmark *domain.Bookmark) pkg.Response {
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		iconURL, err := parsers.FetchFavicon(bookmark.URL)
-		if err != nil {
-			buc.log.Error(context.Background(), "Update bookmark: failed to fetch favicon", map[string]any{"error": err})
-		}
-		bookmark.IconURL = iconURL
-	}()
 
 	bookmarkOwner, err := buc.bookmarkRepo.GetBookmarkOwner(bookmark.ID)
 	if err != nil {
@@ -140,11 +131,32 @@ func (buc *bookmarkUseCase) UpdateBookmark(userID uint, bookmark *domain.Bookmar
 			"bookmarkID": bookmark.ID,
 			"error":      err,
 		})
+
 		return pkg.Response{
 			Code:    500,
 			Message: "failed to get bookmark owner",
 		}
 	}
+
+	go func() {
+		iconURL, err := parsers.FetchFavicon(bookmark.URL)
+		if err != nil {
+			buc.log.Warn(context.Background(), "Update bookmark: failed to fetch favicon", map[string]any{"error": err})
+			return
+		}
+		if iconURL == "" {
+			buc.log.Warn(context.Background(), "Update bookmark: empty icon url", map[string]any{
+				"bookmark url": bookmark.URL,
+			})
+			return
+		}
+
+		bookmark.IconURL = iconURL
+		if err := buc.bookmarkRepo.UploadBookmarkFavicon(bookmark.ID, iconURL); err != nil {
+			buc.log.Error(context.Background(), "Update bookmark: failed to upload favicon url to bookmark", map[string]any{"error": err})
+			return
+		}
+	}()
 
 	if userID != bookmarkOwner {
 		buc.log.Info(context.Background(), "Update bookmark: bookmark belongs to another user", map[string]any{
@@ -157,7 +169,6 @@ func (buc *bookmarkUseCase) UpdateBookmark(userID uint, bookmark *domain.Bookmar
 			Message: "bookmark belongs to another user",
 		}
 	}
-	wg.Wait()
 
 	err = buc.bookmarkRepo.UpdateBookmark(bookmark)
 	if err != nil {

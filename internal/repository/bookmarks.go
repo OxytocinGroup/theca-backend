@@ -11,6 +11,7 @@ type BookmarkRepository interface {
 	UpdateBookmark(bookmark *domain.Bookmark) error
 	DeleteBookmarkByID(bookmarkID uint) error
 	GetBookmarkOwner(bookmarkID uint) (uint, error)
+	UploadBookmarkFavicon(bookmarkID uint, faviconURL string) error
 }
 
 type bookmarkDatabase struct {
@@ -46,4 +47,8 @@ func (bdb *bookmarkDatabase) GetBookmarkOwner(bookmarkID uint) (uint, error) {
 	var userID uint
 	err := bdb.DB.Model(&domain.Bookmark{}).Where("id = ?", bookmarkID).Pluck("user_id", &userID).Error
 	return userID, err
+}
+
+func (bdb *bookmarkDatabase) UploadBookmarkFavicon(bookmarkID uint, faviconURL string) error {
+	return bdb.DB.Model(&domain.Bookmark{}).Where("id = ?", bookmarkID).Update("icon_url", faviconURL).Error
 }

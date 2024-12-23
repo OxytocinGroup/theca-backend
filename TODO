@@ -1,7 +1,7 @@
 - testing []
--speed up endpoints []
 
 
+- speed up endpoints [done]
 - check logger in errors [done]
 - fix routes and docs [done]
 - fix req structures [done]
