@@ -33,7 +33,7 @@ func NewBookmarkHandler(usecase usecase.BookmarkUseCase, log logger.Logger) *Boo
 // @Failure 401 {object} pkg.Response "Unauthorized - User not authenticated"
 // @Failure 500 {object} pkg.Response "Internal server error"
 // @Security CookieAuth
-// @Router /bookmarks [post]
+// @Router /api/bookmarks/create [post]
 func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 	var bookmark domain.Bookmark
 
@@ -57,7 +57,7 @@ func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 // @Security CookieAuth
 // @Success 200 {array} domain.Bookmark "List of bookmarks"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /api/bookmarks [get]
+// @Router /api/bookmarks/get [get]
 func (bh *BookmarkHandler) GetBookmarks(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	bookmarks, resp := bh.BookmarkUseCase.GetBookmarksByUser(userID)
@@ -76,7 +76,7 @@ func (bh *BookmarkHandler) GetBookmarks(c *gin.Context) {
 // @Failure 400 {object} pkg.Response "Bad request, invalid input"
 // @Failure 403 {object} pkg.Response "Forbidden, the user does not have permission to delete this bookmark"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /bookmarks [delete]
+// @Router /api/bookmarks/delete [delete]
 func (bh *BookmarkHandler) DeleteBookmark(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	var bookmark domain.Bookmark
@@ -103,7 +103,7 @@ func (bh *BookmarkHandler) DeleteBookmark(c *gin.Context) {
 // @Failure 400 {object} pkg.Response "Bad request, invalid input"
 // @Failure 403 {object} pkg.Response "Forbidden, the user does not have permission to update this bookmark"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /bookmarks [post]
+// @Router /api/bookmarks/update [post]
 func (bh *BookmarkHandler) UpdateBookmark(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	var bookmark domain.Bookmark

@@ -21,21 +21,21 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	engine.POST("/register", userHandler.Register)
-	engine.POST("/verify-email", userHandler.VerifyEmail)
-	engine.POST("/login", userHandler.Login)
-	engine.POST("/password-reset/request", userHandler.RequestPasswordReset)
-	engine.POST("/password-reset/reset", userHandler.ResetPassword)
+	engine.POST("/user/register", userHandler.Register)
+	engine.POST("/user/verify-email", userHandler.VerifyEmail)
+	engine.POST("/user/login", userHandler.Login)
+	engine.POST("/user/password-reset/request", userHandler.RequestPasswordReset)
+	engine.POST("/user/password-reset/reset", userHandler.ResetPassword)
 
 	// Auth middleware
 	api := engine.Group("/api", middleware.AuthMiddleware(userHandler.SessionUseCase))
 	// api.POST("/change-pass", userHandler.ChangePass)
 
-	api.POST("/create-bookmark", bookmarkHandler.CreateBookmark)
-	api.DELETE("/logout", userHandler.Logout)
-	api.GET("/bookmarks", bookmarkHandler.GetBookmarks)
-	api.DELETE("/bookmarks", bookmarkHandler.DeleteBookmark)
-	api.POST("/bookmarks", bookmarkHandler.UpdateBookmark)
+	api.DELETE("/user/logout", userHandler.Logout)
+	api.POST("/bookmarks/create", bookmarkHandler.CreateBookmark)
+	api.GET("/bookmarks/get", bookmarkHandler.GetBookmarks)
+	api.DELETE("/bookmarks/delete", bookmarkHandler.DeleteBookmark)
+	api.POST("/bookmarks/update", bookmarkHandler.UpdateBookmark)
 	api.GET("/user/verification-status", userHandler.CheckVerificationStatus)
 	return &ServerHTTP{engine: engine}
 }

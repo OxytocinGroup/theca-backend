@@ -1,6 +1,9 @@
-- верификация через ссылку []
-- check logger in errors []
+- testing []
+-speed up endpoints []
 
+
+- check logger in errors [done]
+- fix routes and docs [done]
 - fix req structures [done]
 - write docs to new functions [done]
 - fix sendEmail.go [done]

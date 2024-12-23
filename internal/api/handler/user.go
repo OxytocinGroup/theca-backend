@@ -2,13 +2,13 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/OxytocinGroup/theca-backend/internal/usecase"
 	"github.com/OxytocinGroup/theca-backend/pkg"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
+	"github.com/OxytocinGroup/theca-backend/pkg/requests"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -33,26 +33,23 @@ func NewUserHandler(usecase usecase.UserUseCase, sessionUseCase usecase.SessionU
 // @Tags User
 // @Accept json
 // @Produce json
-// @Param request body struct{email string, username string, password string} true "Username, email and password"
+// @Param request body requests.RegisterRequest true "Username, email and password"
 // @Success 201 {object} pkg.Response
 // @Failure 409 {object} pkg.Response
 // @Failure 500 {object} pkg.Response
 // @Failure 400 {object} pkg.Response
-// @Router /register [post]
+// @Router /user/register [post]
 func (uh *UserHandler) Register(c *gin.Context) {
-	var userRequest struct {
-		Email    string `json:"email" binding:"required,email"`
-		Username string `json:"username" binding:"required,min=3"`
-		Password string `json:"password" binding:"required,min=8"`
-	}
-	if err := c.ShouldBindJSON(&userRequest); err != nil {
+	var req requests.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		uh.Logger.Info(context.Background(), "Register: bad request", map[string]any{"error": err})
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
 		})
 		return
 	}
-	resp := uh.UserUseCase.Register(userRequest.Email, userRequest.Password, userRequest.Username)
+	resp := uh.UserUseCase.Register(req.Email, req.Password, req.Username)
 	c.JSON(resp.Code, resp)
 }
 
@@ -62,18 +59,16 @@ func (uh *UserHandler) Register(c *gin.Context) {
 // @Tags User
 // @Accept json
 // @Produce json
-// @Param request body struct{email string, code string} true "email and verification code"
+// @Param request body requests.EmailVerifyRequest true "email and verification code"
 // @Success 200 {object} pkg.Response "Email verified successfully"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
 // @Failure 404 {object} pkg.Response "Email or verification code not found"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /verify-email [post]
+// @Router /user/verify-email [post]
 func (uh *UserHandler) VerifyEmail(c *gin.Context) {
-	var verifyReq struct {
-		Email string `json:"email" binding:"required,email"`
-		Code  string `json:"code" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&verifyReq); err != nil {
+	var req requests.EmailVerifyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		uh.Logger.Info(context.Background(), "Verify email: bad request", map[string]any{"error": err})
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
@@ -81,7 +76,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	resp := uh.UserUseCase.VerifyEmail(verifyReq.Email, verifyReq.Code)
+	resp := uh.UserUseCase.VerifyEmail(req.Email, req.Code)
 	c.JSON(resp.Code, resp)
 }
 
@@ -91,7 +86,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 // @Tags User
 // @Accept  json
 // @Produce  json
-// @Param request body struct{username string, password string} true "Username and password"
+// @Param request body requests.LoginRequest true "Username and password"
 // @Success 200 {object} pkg.Response "Login successful"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
 // @Failure 401 {object} pkg.Response "Unauthorized - Invalid username or password"
@@ -103,7 +98,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	if err == nil {
 		userID, err := uh.SessionUseCase.ValidateSession(session)
 		if err == nil {
-			uh.Logger.Info(context.Background(), "user tryed to login when already logged", map[string]any{"user_id": userID})
+			uh.Logger.Info(context.Background(), "Login: user tryed to login when already logged", map[string]any{"user_id": userID})
 			c.JSON(http.StatusConflict, pkg.Response{
 				Code:    http.StatusConflict,
 				Message: "user already logged in",
@@ -112,11 +107,9 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		}
 	}
 
-	var req struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+	var req requests.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		uh.Logger.Info(context.Background(), "Login: bad request", map[string]any{"error": err})
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
@@ -132,7 +125,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 
 	sessionID := uuid.New().String()
 	if err := uh.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(24*time.Hour)); err != nil {
-		uh.Logger.Error(context.Background(), "failed to create session", map[string]any{
+		uh.Logger.Error(context.Background(), "Login: failed to create session", map[string]any{
 			"error": err,
 		})
 		c.JSON(http.StatusInternalServerError, pkg.Response{
@@ -157,12 +150,12 @@ func (uh *UserHandler) Login(c *gin.Context) {
 // @Produce  json
 // @Success 200 {object} pkg.Response "Logout successful"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /logout [post]
+// @Router /api/user/logout [delete]
 func (uh *UserHandler) Logout(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
 	if err := uh.SessionUseCase.DeleteAllSessions(userID); err != nil {
-		uh.Logger.Error(context.Background(), "failed to delete sessions", map[string]any{
+		uh.Logger.Error(context.Background(), "Logut: failed to delete sessions", map[string]any{
 			"user_id": userID,
 			"error":   err,
 		})
@@ -180,41 +173,27 @@ func (uh *UserHandler) Logout(c *gin.Context) {
 	})
 }
 
-// @ChangePass GoDoc
-// @Summary Change user password
-// @Description Changes the user's password and deleting all sessions for this user
-// @Tags User
-// @Produce json
-// @Param request body struct{password string} true "New password"
-// @Success 200 {object} pkg.Response
-// @Failure 400 {object} pkg.Response
-// @Failure 401 {object} pkg.Response
-// @Failure 500 {object} pkg.Response
-// @Router /api/change-pass [post]
-// @Security CookieAuth
-func (uh *UserHandler) ChangePass(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, pkg.Response{
-			Code: http.StatusUnauthorized,
-		})
-		return
-	}
+// func (uh *UserHandler) ChangePass(c *gin.Context) {
+// 	userID, exists := c.Get("user_id")
+// 	if !exists {
+// 		c.JSON(http.StatusUnauthorized, pkg.Response{
+// 			Code: http.StatusUnauthorized,
+// 		})
+// 		return
+// 	}
 
-	var req struct {
-		Password string `json:"password" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, pkg.Response{
-			Code:    http.StatusBadRequest,
-			Message: "Invalid request body",
-		})
-		return
-	}
+// 	var req requests.ChangePasswordRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, pkg.Response{
+// 			Code:    http.StatusBadRequest,
+// 			Message: "Invalid request body",
+// 		})
+// 		return
+// 	}
 
-	resp := uh.UserUseCase.ChangePass(fmt.Sprint(userID), req.Password)
-	c.JSON(resp.Code, resp)
-}
+// 	resp := uh.UserUseCase.ChangePass(fmt.Sprint(userID), req.Password)
+// 	c.JSON(resp.Code, resp)
+// }
 
 // CheckVerificationStatus godoc
 // @Summary Check verification status of the user
@@ -244,17 +223,16 @@ func (uh *UserHandler) CheckVerificationStatus(c *gin.Context) {
 // @Tags User
 // @Accept  json
 // @Produce  json
-// @Param request body struct{email string} true "User email"
+// @Param request body requests.RequestPasswordReset true "User email"
 // @Success 200 {object} pkg.Response "Password reset email sent"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
 // @Failure 404 {object} pkg.Response "Email not found"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /password-reset/request [post]
+// @Router /user/password-reset/request [post]
 func (uh *UserHandler) RequestPasswordReset(c *gin.Context) {
-	var req struct {
-		Email string `json:"email" binding:"required,email"`
-	}
+	var req requests.RequestPasswordReset
 	if err := c.ShouldBindJSON(&req); err != nil {
+		uh.Logger.Info(context.Background(), "Request password reset: bad request", map[string]any{"error": err})
 		c.JSON(http.StatusBadRequest, pkg.Response{Code: 400, Message: "bad request"})
 		return
 	}
@@ -269,18 +247,16 @@ func (uh *UserHandler) RequestPasswordReset(c *gin.Context) {
 // @Tags User
 // @Accept  json
 // @Produce  json
-// @Param request body struct{token string; password string} true "Reset token and new password"
+// @Param request body requests.ResetPassword true "Reset token and new password"
 // @Success 200 {object} pkg.Response "Password reset successfully"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
 // @Failure 404 {object} pkg.Response "Reset token not found or expired"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /password-reset/reset [post]
+// @Router /user/password-reset/reset [post]
 func (uh *UserHandler) ResetPassword(c *gin.Context) {
-	var req struct {
-		Token    string `json:"token" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+	var req requests.ResetPassword
 	if err := c.ShouldBindJSON(&req); err != nil {
+		uh.Logger.Info(context.Background(), "Reset password: bad request", map[string]any{"error": err})
 		c.JSON(400, pkg.Response{Code: 400, Message: "bad request"})
 		return
 	}
