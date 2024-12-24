@@ -124,24 +124,10 @@ func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response
 }
 
 func (buc *bookmarkUseCase) UpdateBookmark(userID uint, bookmark *domain.Bookmark) pkg.Response {
-
-	bookmarkOwner, err := buc.bookmarkRepo.GetBookmarkOwner(bookmark.ID)
-	if err != nil {
-		buc.log.Error(context.Background(), "Update bookmark: failed to get bookmark owner", map[string]any{
-			"bookmarkID": bookmark.ID,
-			"error":      err,
-		})
-
-		return pkg.Response{
-			Code:    500,
-			Message: "failed to get bookmark owner",
-		}
-	}
-
 	go func() {
 		iconURL, err := parsers.FetchFavicon(bookmark.URL)
 		if err != nil {
-			buc.log.Warn(context.Background(), "Update bookmark: failed to fetch favicon", map[string]any{"error": err})
+			buc.log.Error(context.Background(), "Update bookmark: failed to fetch favicon", map[string]any{"error": err})
 			return
 		}
 		if iconURL == "" {
@@ -158,19 +144,7 @@ func (buc *bookmarkUseCase) UpdateBookmark(userID uint, bookmark *domain.Bookmar
 		}
 	}()
 
-	if userID != bookmarkOwner {
-		buc.log.Info(context.Background(), "Update bookmark: bookmark belongs to another user", map[string]any{
-			"userID":     userID,
-			"ownerID":    bookmarkOwner,
-			"bookmarkID": bookmark.ID,
-		})
-		return pkg.Response{
-			Code:    http.StatusForbidden,
-			Message: "bookmark belongs to another user",
-		}
-	}
-
-	err = buc.bookmarkRepo.UpdateBookmark(bookmark)
+	err := buc.bookmarkRepo.UpdateBookmark(bookmark)
 	if err != nil {
 		buc.log.Error(context.Background(), "Update bookmark: failed to update bookmark", map[string]any{
 			"bookmarkID": bookmark.ID,

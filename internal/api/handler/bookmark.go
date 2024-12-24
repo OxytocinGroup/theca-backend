@@ -114,6 +114,7 @@ func (bh *BookmarkHandler) UpdateBookmark(c *gin.Context) {
 		return
 	}
 
+	bookmark.UserID = userID
 	resp := bh.BookmarkUseCase.UpdateBookmark(userID, &bookmark)
 	c.JSON(resp.Code, resp)
 }

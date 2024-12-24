@@ -1,6 +1,6 @@
-- testing [working]
-
-
+- fix long api endpoint with request pass reset [done]
+- fix error from 409 to 400 with update bookmark [done]
+- refactor update bookmark [done]
 - speed up endpoints [done]
 - check logger in errors [done]
 - fix routes and docs [done]
