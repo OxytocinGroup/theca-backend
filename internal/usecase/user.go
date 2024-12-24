@@ -309,14 +309,16 @@ func (uuc *userUseCase) GetResetPassword(email string) pkg.Response {
 	}
 
 	resetLink := fmt.Sprintf("%s/reset-password?token=%s", uuc.cfg.AppURL, user.ResetToken)
+	go func(){
 	err = utils.SendResetEmail(&uuc.cfg, user.Email, user.Username, resetLink)
 	if err != nil {
 		uuc.log.Error(context.Background(), "Get Reset Pass: failed to send verification email", map[string]any{
 			"user_id": user.ID,
 			"error":   err,
 		})
-		return pkg.Response{Code: 500, Message: "unable to send reset email"}
+		return
 	}
+	}()	
 
 	uuc.log.Info(context.Background(), "Get Reset Pass: success", map[string]any{})
 	return pkg.Response{
