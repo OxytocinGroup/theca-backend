@@ -7,8 +7,7 @@ type RegisterRequest struct {
 }
 
 type EmailVerifyRequest struct {
-	Email string `json:"email" binding:"required,email"`
-	Code  string `json:"code" binding:"required"`
+	Code string `json:"code" binding:"required,min=6"`
 }
 
 type LoginRequest struct {

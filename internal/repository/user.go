@@ -15,6 +15,7 @@ type UserRepository interface {
 	GetByID(id string) (domain.User, error)
 	CheckVerificationStatus(userID uint) (bool, error)
 	GetByToken(token string) (domain.User, error)
+	GetByVerificationCode(code string) (domain.User, error)
 }
 
 type userDatabase struct {
@@ -72,6 +73,11 @@ func (udb *userDatabase) CheckVerificationStatus(userID uint) (bool, error) {
 func (udb *userDatabase) GetByToken(token string) (domain.User, error) {
 	var user domain.User
 	err := udb.DB.Model(&domain.User{}).Where("reset_token = ?", token).First(&user).Error
+	return user, err
+}
 
+func (udb *userDatabase) GetByVerificationCode(code string) (domain.User, error) {
+	var user domain.User
+	err := udb.DB.Model(&domain.User{}).Where("verification_code = ?", code).First(&user).Error
 	return user, err
 }

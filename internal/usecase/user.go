@@ -22,7 +22,7 @@ import (
 
 type UserUseCase interface {
 	Register(email, password, username string) pkg.Response
-	VerifyEmail(email, code string) pkg.Response
+	VerifyEmail(code string) pkg.Response
 	Auth(username, password string) (*domain.User, pkg.Response)
 	ChangePass(userID string, newPassword string) pkg.Response
 	CheckVerificationStatus(userID uint) (bool, pkg.Response)
@@ -142,49 +142,32 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 	}
 }
 
-func (uuc *userUseCase) VerifyEmail(email, code string) pkg.Response {
-	user, err := uuc.userRepo.GetByEmail(email)
+func (uuc *userUseCase) VerifyEmail(code string) pkg.Response {
+	user, err := uuc.userRepo.GetByVerificationCode(code)
 	if err != nil {
-		uuc.log.Info(context.Background(), "Verify email: user not found", map[string]any{
-			"user_email": user.Email,
-			"error":      err,
-		})
-		return pkg.Response{
-			Code:    http.StatusNotFound,
-			Message: "User not found",
-		}
+		uuc.log.Info(context.Background(), "Verify email: user not found", map[string]any{"error": err})
+		return pkg.Response{Code: http.StatusNotFound, Message: "User not found"}
 	}
-
-	if user.VerificationCode != code {
-		uuc.log.Info(context.Background(), "Verify Email: invalid verification code", map[string]any{
-			"user_id": user.ID,
-			"code":    400,
-		})
-		return pkg.Response{
-			Code:    http.StatusBadRequest,
-			Message: "Invalid verification code",
-		}
+	
+	if user.IsVerified {
+		return pkg.Response{Code: http.StatusConflict, Message: "User already verified"}
 	}
-
+	
+	if code != user.VerificationCode {
+		uuc.log.Info(context.Background(), "Verify Email: invalid verification code", map[string]any{"user_id":user.ID,"code":400,})
+			return pkg.Response{Code:http.StatusBadRequest, Message: "Invalid verification code",}
+	}
+	
 	user.IsVerified = true
 	user.VerificationCode = ""
-
+	
 	if err := uuc.userRepo.Update(&user); err != nil {
-		uuc.log.Error(context.Background(), "Verify email: failed to update user", map[string]any{
-			"user_id": user.ID,
-			"error":   err,
-		})
-		return pkg.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to update user",
-		}
+		uuc.log.Error(context.Background(), "Verify email: failed to update user", map[string]any{"user_id": user.ID, "error": err})
+		return pkg.Response{Code: http.StatusInternalServerError, Message: "Failed to update user"}
 	}
-
-	uuc.log.Info(context.Background(), "Verify enauk: user verified successfully", map[string]any{})
-	return pkg.Response{
-		Code:    http.StatusOK,
-		Message: "Email verified successfully",
-	}
+	
+	uuc.log.Info(context.Background(), "Verify email: user verified successfully", map[string]any{})
+	return pkg.Response{Code: http.StatusOK, Message: "User is verified successfully"}
 }
 
 func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Response) {
@@ -309,16 +292,16 @@ func (uuc *userUseCase) GetResetPassword(email string) pkg.Response {
 	}
 
 	resetLink := fmt.Sprintf("%s/reset-password?token=%s", uuc.cfg.AppURL, user.ResetToken)
-	go func(){
-	err = utils.SendResetEmail(&uuc.cfg, user.Email, user.Username, resetLink)
-	if err != nil {
-		uuc.log.Error(context.Background(), "Get Reset Pass: failed to send verification email", map[string]any{
-			"user_id": user.ID,
-			"error":   err,
-		})
-		return
-	}
-	}()	
+	go func() {
+		err = utils.SendResetEmail(&uuc.cfg, user.Email, user.Username, resetLink)
+		if err != nil {
+			uuc.log.Error(context.Background(), "Get Reset Pass: failed to send verification email", map[string]any{
+				"user_id": user.ID,
+				"error":   err,
+			})
+			return
+		}
+	}()
 
 	uuc.log.Info(context.Background(), "Get Reset Pass: success", map[string]any{})
 	return pkg.Response{

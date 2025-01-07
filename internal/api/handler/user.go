@@ -59,10 +59,10 @@ func (uh *UserHandler) Register(c *gin.Context) {
 // @Tags User
 // @Accept json
 // @Produce json
-// @Param request body requests.EmailVerifyRequest true "email and verification code"
+// @Param request body requests.EmailVerifyRequest true "verification code"
 // @Success 200 {object} pkg.Response "Email verified successfully"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
-// @Failure 404 {object} pkg.Response "Email or verification code not found"
+// @Failure 404 {object} pkg.Response "Verification code not found"
 // @Failure 500 {object} pkg.Response "Internal server error"
 // @Router /user/verify-email [post]
 func (uh *UserHandler) VerifyEmail(c *gin.Context) {
@@ -76,7 +76,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	resp := uh.UserUseCase.VerifyEmail(req.Email, req.Code)
+	resp := uh.UserUseCase.VerifyEmail(req.Code)
 	c.JSON(resp.Code, resp)
 }
 
@@ -92,7 +92,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 // @Failure 401 {object} pkg.Response "Unauthorized - Invalid username or password"
 // @Failure 409 {object} pkg.Response "Conflict - User already logged in"
 // @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /login [post]
+// @Router /user/login [post]
 func (uh *UserHandler) Login(c *gin.Context) {
 	session, err := c.Cookie("session_id")
 	if err == nil {
