@@ -87,7 +87,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param request body requests.LoginRequest true "Username and password"
-// @Success 200 {object} pkg.Response "Login successful"
+// @Success 200 {object} pkg.LoginResponse "Login successful"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
 // @Failure 401 {object} pkg.Response "Unauthorized - Invalid username or password"
 // @Failure 409 {object} pkg.Response "Conflict - User already logged in"
@@ -136,9 +136,10 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	}
 
 	c.SetCookie("session_id", sessionID, 3600*24, "/", "", false, true)
-	c.JSON(http.StatusOK, pkg.Response{
-		Code:    http.StatusOK,
-		Message: "Login successful",
+	c.JSON(http.StatusOK, pkg.LoginResponse{
+		Code:     http.StatusOK,
+		Message:  "Login successful",
+		Username: user.Username,
 	})
 }
 
