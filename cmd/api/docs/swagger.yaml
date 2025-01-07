@@ -236,27 +236,6 @@ paths:
       summary: User logout
       tags:
       - User
-  /api/user/verification-status:
-    get:
-      consumes:
-      - application/json
-      description: Check if the user's verification status is complete
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: User verification status checked successfully, no content
-          schema:
-            $ref: '#/definitions/pkg.Response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/pkg.Response'
-      security:
-      - CookieAuth: []
-      summary: Check verification status of the user
-      tags:
-      - User
   /user/login:
     post:
       consumes:
@@ -282,7 +261,7 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
         "401":
-          description: Unauthorized - Invalid username or password
+          description: Unauthorized - Invalid username or password or not verified
           schema:
             $ref: '#/definitions/pkg.Response'
         "409":

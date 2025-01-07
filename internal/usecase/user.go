@@ -24,8 +24,8 @@ type UserUseCase interface {
 	Register(email, password, username string) pkg.Response
 	VerifyEmail(code string) pkg.Response
 	Auth(username, password string) (*domain.User, pkg.Response)
-	ChangePass(userID string, newPassword string) pkg.Response
-	CheckVerificationStatus(userID uint) (bool, pkg.Response)
+	ChangePass(userID uint, newPassword string) pkg.Response
+	CheckVerificationStatus(username string) (bool, pkg.Response)
 	GetResetPassword(email string) pkg.Response
 	ResetPassword(token, password string) pkg.Response
 }
@@ -148,24 +148,24 @@ func (uuc *userUseCase) VerifyEmail(code string) pkg.Response {
 		uuc.log.Info(context.Background(), "Verify email: user not found", map[string]any{"error": err})
 		return pkg.Response{Code: http.StatusNotFound, Message: "User not found"}
 	}
-	
+
 	if user.IsVerified {
 		return pkg.Response{Code: http.StatusConflict, Message: "User already verified"}
 	}
-	
+
 	if code != user.VerificationCode {
-		uuc.log.Info(context.Background(), "Verify Email: invalid verification code", map[string]any{"user_id":user.ID,"code":400,})
-			return pkg.Response{Code:http.StatusBadRequest, Message: "Invalid verification code",}
+		uuc.log.Info(context.Background(), "Verify Email: invalid verification code", map[string]any{"user_id": user.ID, "code": 400})
+		return pkg.Response{Code: http.StatusBadRequest, Message: "Invalid verification code"}
 	}
-	
+
 	user.IsVerified = true
 	user.VerificationCode = ""
-	
+
 	if err := uuc.userRepo.Update(&user); err != nil {
 		uuc.log.Error(context.Background(), "Verify email: failed to update user", map[string]any{"user_id": user.ID, "error": err})
 		return pkg.Response{Code: http.StatusInternalServerError, Message: "Failed to update user"}
 	}
-	
+
 	uuc.log.Info(context.Background(), "Verify email: user verified successfully", map[string]any{})
 	return pkg.Response{Code: http.StatusOK, Message: "User is verified successfully"}
 }
@@ -198,7 +198,7 @@ func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Respo
 	}
 }
 
-func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Response {
+func (uuc *userUseCase) ChangePass(userID uint, newPassword string) pkg.Response {
 	user, err := uuc.userRepo.GetByID(userID)
 	if err != nil {
 		uuc.log.Info(context.Background(), "Change pass: failed to get user by id", map[string]any{
@@ -253,10 +253,19 @@ func (uuc *userUseCase) ChangePass(userID string, newPassword string) pkg.Respon
 	}
 }
 
-func (uuc *userUseCase) CheckVerificationStatus(userID uint) (bool, pkg.Response) {
-	exists, err := uuc.userRepo.CheckVerificationStatus(userID)
+func (uuc *userUseCase) CheckVerificationStatus(username string) (bool, pkg.Response) {
+	user, err := uuc.userRepo.GetByUsername(username)
 	if err != nil {
-		uuc.log.Error(context.Background(), "Check status: failed to check verification status", map[string]any{"user_id": userID, "error": err})
+		uuc.log.Info(context.Background(), "Check status: user not found", map[string]any{"username": username, "error": err})
+		return false, pkg.Response{
+			Code:    http.StatusNotFound,
+			Message: "user not found",
+		}
+	}
+	
+	exists, err := uuc.userRepo.CheckVerificationStatus(user.ID)
+	if err != nil {
+		uuc.log.Error(context.Background(), "Check status: failed to check verification status", map[string]any{"user_id": user.ID, "error": err})
 		return false, pkg.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "failed to check verification status",

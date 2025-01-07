@@ -89,7 +89,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 // @Param request body requests.LoginRequest true "Username and password"
 // @Success 200 {object} pkg.LoginResponse "Login successful"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
-// @Failure 401 {object} pkg.Response "Unauthorized - Invalid username or password"
+// @Failure 401 {object} pkg.Response "Unauthorized - Invalid username or password or not verified"
 // @Failure 409 {object} pkg.Response "Conflict - User already logged in"
 // @Failure 500 {object} pkg.Response "Internal server error"
 // @Router /user/login [post]
@@ -114,6 +114,16 @@ func (uh *UserHandler) Login(c *gin.Context) {
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
 		})
+		return
+	}
+
+	verified, resp := uh.UserUseCase.CheckVerificationStatus(req.Username)
+	if resp.Code != http.StatusOK {
+		c.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+	if !verified {
+		c.JSON(http.StatusUnauthorized, pkg.Response{Code: http.StatusUnauthorized, Message: "not verified"})
 		return
 	}
 
@@ -195,28 +205,6 @@ func (uh *UserHandler) Logout(c *gin.Context) {
 // 	resp := uh.UserUseCase.ChangePass(fmt.Sprint(userID), req.Password)
 // 	c.JSON(resp.Code, resp)
 // }
-
-// CheckVerificationStatus godoc
-// @Summary Check verification status of the user
-// @Description Check if the user's verification status is complete
-// @Tags User
-// @Accept json
-// @Produce json
-// @Security CookieAuth
-// @Success 204 {object} pkg.Response "User verification status checked successfully, no content"
-// @Failure 500 {object} pkg.Response "Internal server error"
-// @Router /api/user/verification-status [get]
-func (uh *UserHandler) CheckVerificationStatus(c *gin.Context) {
-	userID := c.GetUint("user_id")
-	exists, resp := uh.UserUseCase.CheckVerificationStatus(userID)
-	if resp.Code != 200 {
-		c.JSON(resp.Code, resp)
-		return
-	}
-	c.JSON(resp.Code, map[string]bool{
-		"status": exists,
-	})
-}
 
 // @RequestPasswordReset godoc
 // @Summary Request a password reset

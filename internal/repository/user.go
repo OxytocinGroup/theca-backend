@@ -12,7 +12,7 @@ type UserRepository interface {
 	EmailExists(email string) (bool, error)
 	UsernameExists(username string) (bool, error)
 	Update(user *domain.User) error
-	GetByID(id string) (domain.User, error)
+	GetByID(id uint) (domain.User, error)
 	CheckVerificationStatus(userID uint) (bool, error)
 	GetByToken(token string) (domain.User, error)
 	GetByVerificationCode(code string) (domain.User, error)
@@ -58,7 +58,7 @@ func (udb *userDatabase) Update(user *domain.User) error {
 	return udb.DB.Model(&domain.User{}).Where("id = ?", user.ID).Save(user).Error
 }
 
-func (udb *userDatabase) GetByID(id string) (domain.User, error) {
+func (udb *userDatabase) GetByID(id uint) (domain.User, error) {
 	var user domain.User
 	err := udb.DB.Model(&domain.User{}).Where("id = ?", id).First(&user).Error
 	return user, err

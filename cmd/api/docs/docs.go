@@ -249,40 +249,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/user/verification-status": {
-            "get": {
-                "security": [
-                    {
-                        "CookieAuth": []
-                    }
-                ],
-                "description": "Check if the user's verification status is complete",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Check verification status of the user",
-                "responses": {
-                    "204": {
-                        "description": "User verification status checked successfully, no content",
-                        "schema": {
-                            "$ref": "#/definitions/pkg.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/pkg.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/user/login": {
             "post": {
                 "description": "This endpoint allows a user to log in using their username and password. If already logged in, a conflict response is returned.",
@@ -321,7 +287,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - Invalid username or password",
+                        "description": "Unauthorized - Invalid username or password or not verified",
                         "schema": {
                             "$ref": "#/definitions/pkg.Response"
                         }
