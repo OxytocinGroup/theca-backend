@@ -272,7 +272,7 @@
                 }
             }
         },
-        "/login": {
+        "/user/login": {
             "post": {
                 "description": "This endpoint allows a user to log in using their username and password. If already logged in, a conflict response is returned.",
                 "consumes": [
@@ -300,7 +300,7 @@
                     "200": {
                         "description": "Login successful",
                         "schema": {
-                            "$ref": "#/definitions/pkg.Response"
+                            "$ref": "#/definitions/pkg.LoginResponse"
                         }
                     },
                     "400": {
@@ -501,7 +501,7 @@
                 "summary": "Verify email address",
                 "parameters": [
                     {
-                        "description": "email and verification code",
+                        "description": "verification code",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -524,7 +524,7 @@
                         }
                     },
                     "404": {
-                        "description": "Email or verification code not found",
+                        "description": "Verification code not found",
                         "schema": {
                             "$ref": "#/definitions/pkg.Response"
                         }
@@ -563,6 +563,20 @@
                 }
             }
         },
+        "pkg.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "pkg.Response": {
             "type": "object",
             "properties": {
@@ -577,15 +591,12 @@
         "requests.EmailVerifyRequest": {
             "type": "object",
             "required": [
-                "code",
-                "email"
+                "code"
             ],
             "properties": {
                 "code": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         },
@@ -616,7 +627,8 @@
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 8
                 },
                 "username": {
                     "type": "string",

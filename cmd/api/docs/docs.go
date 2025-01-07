@@ -283,7 +283,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/login": {
+        "/user/login": {
             "post": {
                 "description": "This endpoint allows a user to log in using their username and password. If already logged in, a conflict response is returned.",
                 "consumes": [
@@ -311,7 +311,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Login successful",
                         "schema": {
-                            "$ref": "#/definitions/pkg.Response"
+                            "$ref": "#/definitions/pkg.LoginResponse"
                         }
                     },
                     "400": {
@@ -512,7 +512,7 @@ const docTemplate = `{
                 "summary": "Verify email address",
                 "parameters": [
                     {
-                        "description": "email and verification code",
+                        "description": "verification code",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -535,7 +535,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Email or verification code not found",
+                        "description": "Verification code not found",
                         "schema": {
                             "$ref": "#/definitions/pkg.Response"
                         }
@@ -574,6 +574,20 @@ const docTemplate = `{
                 }
             }
         },
+        "pkg.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "pkg.Response": {
             "type": "object",
             "properties": {
@@ -588,15 +602,12 @@ const docTemplate = `{
         "requests.EmailVerifyRequest": {
             "type": "object",
             "required": [
-                "code",
-                "email"
+                "code"
             ],
             "properties": {
                 "code": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         },
@@ -627,7 +638,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 8
                 },
                 "username": {
                     "type": "string",

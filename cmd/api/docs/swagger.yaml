@@ -14,6 +14,15 @@ definitions:
       user_id:
         type: integer
     type: object
+  pkg.LoginResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+      username:
+        type: string
+    type: object
   pkg.Response:
     properties:
       code:
@@ -24,12 +33,10 @@ definitions:
   requests.EmailVerifyRequest:
     properties:
       code:
-        type: string
-      email:
+        minLength: 6
         type: string
     required:
     - code
-    - email
     type: object
   requests.LoginRequest:
     properties:
@@ -46,6 +53,7 @@ definitions:
       email:
         type: string
       password:
+        minLength: 8
         type: string
       username:
         minLength: 3
@@ -249,7 +257,7 @@ paths:
       summary: Check verification status of the user
       tags:
       - User
-  /login:
+  /user/login:
     post:
       consumes:
       - application/json
@@ -268,7 +276,7 @@ paths:
         "200":
           description: Login successful
           schema:
-            $ref: '#/definitions/pkg.Response'
+            $ref: '#/definitions/pkg.LoginResponse'
         "400":
           description: Bad request - Invalid input
           schema:
@@ -399,7 +407,7 @@ paths:
       description: This endpoint allows a user to verify their email address by providing
         the email and verification code.
       parameters:
-      - description: email and verification code
+      - description: verification code
         in: body
         name: request
         required: true
@@ -417,7 +425,7 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
         "404":
-          description: Email or verification code not found
+          description: Verification code not found
           schema:
             $ref: '#/definitions/pkg.Response'
         "500":
