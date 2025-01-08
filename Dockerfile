@@ -1,27 +1,41 @@
+# Stage 1: Build
 FROM golang:1.23.4-bullseye AS builder
 
 WORKDIR /app
 
+# Копируем зависимости
 COPY go.mod go.sum ./
 COPY vendor ./vendor
 
-COPY ./internal/utils/email ./internal/utils/email
+# Копируем исходники
+
 COPY . .
 
+# Устанавливаем флаги для сборки
 ENV GOFLAGS="-mod=vendor"
 
+# Сборка приложения
 RUN make build
 
+# Диагностика
+# RUN ls -l /app/build/bin
+
+# Stage 2: Runtime
 FROM debian:buster-slim
 
 WORKDIR /app
 
+# Устанавливаем корневые сертификаты
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /build/bin .
+# Копируем собранное приложение из builder
+COPY --from=builder /app/build/bin/ .
+
+COPY internal/utils/email/verifyMail.html internal/utils/email/resetEmail.html ./templates/
 COPY .env ./.env
 
 EXPOSE 3000
 
+# Запуск приложения
 CMD [ "./api" ]
