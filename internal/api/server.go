@@ -30,6 +30,7 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 		MaxAge:           12 * time.Hour,
 	}))
 	engine.SetTrustedProxies(nil)
+	gin.SetMode(gin.ReleaseMode)
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
@@ -50,7 +51,6 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 	api.DELETE("/bookmarks/delete", bookmarkHandler.DeleteBookmark)
 	api.POST("/bookmarks/update", bookmarkHandler.UpdateBookmark)
 	// api.GET("/user/verification-status", userHandler.CheckVerificationStatus)
-	gin.SetMode(gin.ReleaseMode)
 	return &ServerHTTP{engine: engine}
 }
 

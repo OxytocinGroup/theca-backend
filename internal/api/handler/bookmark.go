@@ -5,6 +5,8 @@ import (
 
 	"github.com/OxytocinGroup/theca-backend/internal/domain"
 	"github.com/OxytocinGroup/theca-backend/internal/usecase"
+	"github.com/OxytocinGroup/theca-backend/pkg"
+	"github.com/OxytocinGroup/theca-backend/pkg/cerr"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -41,7 +43,7 @@ func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 	bookmark.UserID = userID.(uint)
 	if err := c.ShouldBindJSON(&bookmark); err != nil {
 		bh.Logger.Info(c, "bad request", map[string]any{"error": err})
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: ("Bad request " + err.Error()), Error: cerr.ErrInvalidBody})
 		return
 	}
 
@@ -83,7 +85,7 @@ func (bh *BookmarkHandler) DeleteBookmark(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&bookmark); err != nil {
 		bh.Logger.Info(c, "bad request", map[string]any{"error": err})
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: ("Bad request " + err.Error()), Error: cerr.ErrInvalidBody})
 		return
 	}
 
@@ -110,7 +112,7 @@ func (bh *BookmarkHandler) UpdateBookmark(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&bookmark); err != nil {
 		bh.Logger.Info(c, "bad request", map[string]any{"error": err})
-		c.JSON(http.StatusBadRequest, nil)
+		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: ("Bad request " + err.Error()), Error: cerr.ErrInvalidBody})
 		return
 	}
 

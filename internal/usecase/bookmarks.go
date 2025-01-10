@@ -7,6 +7,7 @@ import (
 	"github.com/OxytocinGroup/theca-backend/internal/domain"
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
 	"github.com/OxytocinGroup/theca-backend/pkg"
+	"github.com/OxytocinGroup/theca-backend/pkg/cerr"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 	"github.com/OxytocinGroup/theca-backend/pkg/parsers"
 )
@@ -102,6 +103,7 @@ func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response
 		return pkg.Response{
 			Code:    http.StatusForbidden,
 			Message: "bookmark belongs to another user",
+			Error:   cerr.BelongsToAnotherUser,
 		}
 	}
 
@@ -120,6 +122,7 @@ func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response
 	buc.log.Info(context.Background(), "Delete bookmark: success", map[string]any{})
 	return pkg.Response{
 		Code: 200,
+		Message: "Bookmark deleted",
 	}
 }
 

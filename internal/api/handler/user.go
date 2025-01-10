@@ -7,6 +7,7 @@ import (
 
 	"github.com/OxytocinGroup/theca-backend/internal/usecase"
 	"github.com/OxytocinGroup/theca-backend/pkg"
+	"github.com/OxytocinGroup/theca-backend/pkg/cerr"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 	"github.com/OxytocinGroup/theca-backend/pkg/requests"
 	"github.com/gin-gonic/gin"
@@ -46,6 +47,7 @@ func (uh *UserHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
+			Error:   cerr.ErrInvalidBody,
 		})
 		return
 	}
@@ -72,6 +74,7 @@ func (uh *UserHandler) VerifyEmail(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
+			Error:   cerr.ErrInvalidBody,
 		})
 		return
 	}
@@ -102,6 +105,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 			c.JSON(http.StatusConflict, pkg.Response{
 				Code:    http.StatusConflict,
 				Message: "user already logged in",
+				Error:   cerr.ErrUserLogined,
 			})
 			return
 		}
@@ -113,6 +117,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, pkg.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request body",
+			Error:   cerr.ErrInvalidBody,
 		})
 		return
 	}
@@ -129,7 +134,8 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		return
 	}
 	if !verified {
-		c.JSON(http.StatusUnauthorized, pkg.Response{Code: http.StatusUnauthorized, Message: "not verified"})
+		uh.Logger.Info(context.Background(), "Login: email is not verified", map[string]any{"user_id": req.Username})
+		c.JSON(http.StatusUnauthorized, pkg.Response{Code: http.StatusUnauthorized, Message: "not verified", Error: cerr.ErrEmailNotVerified})
 		return
 	}
 
@@ -222,7 +228,7 @@ func (uh *UserHandler) RequestPasswordReset(c *gin.Context) {
 	var req requests.RequestPasswordReset
 	if err := c.ShouldBindJSON(&req); err != nil {
 		uh.Logger.Info(context.Background(), "Request password reset: bad request", map[string]any{"error": err})
-		c.JSON(http.StatusBadRequest, pkg.Response{Code: 400, Message: "bad request"})
+		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: "bad request", Error: cerr.ErrInvalidBody})
 		return
 	}
 
@@ -246,7 +252,7 @@ func (uh *UserHandler) ResetPassword(c *gin.Context) {
 	var req requests.ResetPassword
 	if err := c.ShouldBindJSON(&req); err != nil {
 		uh.Logger.Info(context.Background(), "Reset password: bad request", map[string]any{"error": err})
-		c.JSON(400, pkg.Response{Code: 400, Message: "Bad request"})
+		c.JSON(400, pkg.Response{Code: 400, Message: "Bad request", Error: cerr.ErrInvalidBody})
 		return
 	}
 
@@ -271,7 +277,7 @@ func (uh *UserHandler) RequestVerificationToken(c *gin.Context) {
 	var req requests.RequestVerificationToken
 	if err := c.ShouldBindJSON(&req); err != nil {
 		uh.Logger.Info(context.Background(), "Resend token: bad request", map[string]any{"error": err})
-		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: "Bad request"})
+		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: "Bad request", Error: cerr.ErrInvalidBody})
 		return
 	}
 

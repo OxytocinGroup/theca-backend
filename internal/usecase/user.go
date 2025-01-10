@@ -17,6 +17,7 @@ import (
 	utils "github.com/OxytocinGroup/theca-backend/internal/utils/email"
 	"github.com/OxytocinGroup/theca-backend/internal/utils/token"
 	"github.com/OxytocinGroup/theca-backend/pkg"
+	"github.com/OxytocinGroup/theca-backend/pkg/cerr"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 )
 
@@ -88,6 +89,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		return pkg.Response{
 			Code:    http.StatusConflict,
 			Message: "Email already exists",
+			Error:   cerr.ErrEmailExists,
 		}
 	}
 	if usernameExists {
@@ -97,6 +99,7 @@ func (uuc *userUseCase) Register(email, password, username string) pkg.Response 
 		return pkg.Response{
 			Code:    http.StatusConflict,
 			Message: "Username already exists",
+			Error:   cerr.ErrUsernameExists,
 		}
 	}
 
@@ -151,12 +154,12 @@ func (uuc *userUseCase) VerifyEmail(code string) pkg.Response {
 	}
 
 	if user.IsVerified {
-		return pkg.Response{Code: http.StatusConflict, Message: "User already verified"}
+		return pkg.Response{Code: http.StatusConflict, Message: "User already verified", Error: cerr.UserVerified}
 	}
 
 	if code != user.VerificationCode {
 		uuc.log.Info(context.Background(), "Verify Email: invalid verification code", map[string]any{"user_id": user.ID, "code": 400})
-		return pkg.Response{Code: http.StatusBadRequest, Message: "Invalid verification code"}
+		return pkg.Response{Code: http.StatusBadRequest, Message: "Invalid verification code", Error: cerr.InvalidVerCode}
 	}
 
 	user.IsVerified = true
@@ -191,6 +194,7 @@ func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Respo
 		return nil, pkg.Response{
 			Code:    http.StatusUnauthorized,
 			Message: "invalid password",
+			Error:   cerr.InvalidPass,
 		}
 	}
 	uuc.log.Info(context.Background(), "Auth: user auth successfully", map[string]any{})
@@ -316,7 +320,7 @@ func (uuc *userUseCase) GetResetPassword(email string) pkg.Response {
 	uuc.log.Info(context.Background(), "Get Reset Pass: success", map[string]any{})
 	return pkg.Response{
 		Code:    200,
-		Message: "email sent on your email",
+		Message: "Email sent on your email",
 	}
 }
 
@@ -331,7 +335,7 @@ func (uuc *userUseCase) ResetPassword(token, password string) pkg.Response {
 	}
 	if user.ResetTokenExpire.Before(time.Now()) {
 		uuc.log.Info(context.Background(), "Reset pass: token expired", map[string]any{"userID": user.ID})
-		return pkg.Response{Code: http.StatusBadRequest, Message: "token expired"}
+		return pkg.Response{Code: http.StatusBadRequest, Message: "token expired", Error: cerr.ExpToken}
 	}
 
 	hashPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -376,7 +380,7 @@ func (uuc *userUseCase) ResendVerificationToken(username string) pkg.Response {
 	}
 	if verified {
 		uuc.log.Info(context.Background(), "Resend token: user is already verified", map[string]any{"userID": user.ID})
-		return pkg.Response{Code: http.StatusConflict, Message: "User is already verified"}
+		return pkg.Response{Code: http.StatusConflict, Message: "User is already verified", Error: cerr.UserVerified}
 	}
 
 	err = utils.SendVerificationEmail(&uuc.cfg, user.Email, user.VerificationCode, user.Username)
