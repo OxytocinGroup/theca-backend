@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: oxeee/theca-back:latest
     container_name: theca_api
     ports:
       - "3000:3000"

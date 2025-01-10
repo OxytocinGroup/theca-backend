@@ -514,6 +514,64 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/verify-email/request": {
+            "post": {
+                "description": "Resends a verification token for the provided username.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Resend Verification Token",
+                "parameters": [
+                    {
+                        "description": "Request body containing the username",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.RequestVerificationToken"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification token resent successfully",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request, invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "User has verified email",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -621,6 +679,18 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string"
+                }
+            }
+        },
+        "requests.RequestVerificationToken": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "minLength": 3
                 }
             }
         },

@@ -70,6 +70,14 @@ definitions:
     required:
     - email
     type: object
+  requests.RequestVerificationToken:
+    properties:
+      username:
+        minLength: 3
+        type: string
+    required:
+    - username
+    type: object
   requests.ResetPassword:
     properties:
       password:
@@ -412,6 +420,44 @@ paths:
           schema:
             $ref: '#/definitions/pkg.Response'
       summary: Verify email address
+      tags:
+      - User
+  /user/verify-email/request:
+    post:
+      consumes:
+      - application/json
+      description: Resends a verification token for the provided username.
+      parameters:
+      - description: Request body containing the username
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RequestVerificationToken'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification token resent successfully
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request, invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "403":
+          description: User has verified email
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      summary: Resend Verification Token
       tags:
       - User
 swagger: "2.0"

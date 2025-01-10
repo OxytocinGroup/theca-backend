@@ -28,6 +28,7 @@ type UserUseCase interface {
 	CheckVerificationStatus(username string) (bool, pkg.Response)
 	GetResetPassword(email string) pkg.Response
 	ResetPassword(token, password string) pkg.Response
+	ResendVerificationToken(username string) pkg.Response
 }
 
 type userUseCase struct {
@@ -262,7 +263,7 @@ func (uuc *userUseCase) CheckVerificationStatus(username string) (bool, pkg.Resp
 			Message: "user not found",
 		}
 	}
-	
+
 	exists, err := uuc.userRepo.CheckVerificationStatus(user.ID)
 	if err != nil {
 		uuc.log.Error(context.Background(), "Check status: failed to check verification status", map[string]any{"user_id": user.ID, "error": err})
@@ -355,5 +356,43 @@ func (uuc *userUseCase) ResetPassword(token, password string) pkg.Response {
 	return pkg.Response{
 		Code:    200,
 		Message: "password was reset successfully",
+	}
+}
+
+func (uuc *userUseCase) ResendVerificationToken(username string) pkg.Response {
+
+	user, err := uuc.userRepo.GetByUsername(username)
+	if err != nil {
+		uuc.log.Info(context.Background(), "Resend token: user not found by username", map[string]any{"username": username, "error": err})
+		return pkg.Response{
+			Code:    http.StatusNotFound,
+			Message: "user not found",
+		}
+	}
+	verified, err := uuc.userRepo.CheckVerificationStatus(user.ID)
+	if err != nil {
+		uuc.log.Error(context.Background(), "Resend token: failed to check user verification status", map[string]any{"userID": user.ID, "error": err})
+		return pkg.Response{Code: http.StatusInternalServerError, Message: "Failed to check email verification status"}
+	}
+	if verified {
+		uuc.log.Info(context.Background(), "Resend token: user is already verified", map[string]any{"userID": user.ID})
+		return pkg.Response{Code: http.StatusConflict, Message: "User is already verified"}
+	}
+
+	err = utils.SendVerificationEmail(&uuc.cfg, user.Email, user.VerificationCode, user.Username)
+	if err != nil {
+		uuc.log.Error(context.Background(), "Resend token: failed to send verification email", map[string]any{
+			"user_id": user.ID,
+			"error":   err,
+		})
+		return pkg.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to send verification email",
+		}
+	}
+
+	return pkg.Response{
+		Code:    http.StatusOK,
+		Message: "Email sent",
 	}
 }

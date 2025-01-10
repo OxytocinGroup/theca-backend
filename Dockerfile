@@ -17,9 +17,6 @@ ENV GOFLAGS="-mod=vendor"
 # Сборка приложения
 RUN make build
 
-# Диагностика
-# RUN ls -l /app/build/bin
-
 # Stage 2: Runtime
 FROM debian:buster-slim
 

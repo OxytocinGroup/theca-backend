@@ -27,3 +27,7 @@ type ResetPassword struct {
 	Token    string `json:"token" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+type RequestVerificationToken struct {
+	Username string `json:"username" binding:"required,min=3"`
+}

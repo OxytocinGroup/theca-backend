@@ -117,6 +117,12 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
+	user, resp := uh.UserUseCase.Auth(req.Username, req.Password)
+	if resp.Code != 200 {
+		c.JSON(resp.Code, resp)
+		return
+	}
+
 	verified, resp := uh.UserUseCase.CheckVerificationStatus(req.Username)
 	if resp.Code != http.StatusOK {
 		c.JSON(http.StatusUnauthorized, resp)
@@ -124,12 +130,6 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	}
 	if !verified {
 		c.JSON(http.StatusUnauthorized, pkg.Response{Code: http.StatusUnauthorized, Message: "not verified"})
-		return
-	}
-
-	user, resp := uh.UserUseCase.Auth(req.Username, req.Password)
-	if resp.Code != 200 {
-		c.JSON(resp.Code, resp)
 		return
 	}
 
@@ -246,10 +246,35 @@ func (uh *UserHandler) ResetPassword(c *gin.Context) {
 	var req requests.ResetPassword
 	if err := c.ShouldBindJSON(&req); err != nil {
 		uh.Logger.Info(context.Background(), "Reset password: bad request", map[string]any{"error": err})
-		c.JSON(400, pkg.Response{Code: 400, Message: "bad request"})
+		c.JSON(400, pkg.Response{Code: 400, Message: "Bad request"})
 		return
 	}
 
 	resp := uh.UserUseCase.ResetPassword(req.Token, req.Password)
+	c.JSON(resp.Code, resp)
+}
+
+// RequestVerificationToken godoc
+// @Summary Resend Verification Token
+// @Description Resends a verification token for the provided username.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body requests.RequestVerificationToken true "Request body containing the username"
+// @Success 200 {object} pkg.Response "Verification token resent successfully"
+// @Failure 400 {object} pkg.Response "Bad request, invalid input"
+// @Failure 403 {object} pkg.Response "User has verified email"
+// @Failure 404 {object} pkg.Response "User not found"
+// @Failure 500 {object} pkg.Response "Internal server error"
+// @Router /user/verify-email/request [post]
+func (uh *UserHandler) RequestVerificationToken(c *gin.Context) {
+	var req requests.RequestVerificationToken
+	if err := c.ShouldBindJSON(&req); err != nil {
+		uh.Logger.Info(context.Background(), "Resend token: bad request", map[string]any{"error": err})
+		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: "Bad request"})
+		return
+	}
+
+	resp := uh.UserUseCase.ResendVerificationToken(req.Username)
 	c.JSON(resp.Code, resp)
 }

@@ -18,7 +18,7 @@ type Mail struct {
 func SendVerificationEmail(cfg *config.Config, email, code, username string) error {
 	template := template.New("verifyMail.html")
 
-	template, err := template.ParseFiles("app/templates/verifyMail.html")
+	template, err := template.ParseFiles("templates/verifyMail.html")
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func SendVerificationEmail(cfg *config.Config, email, code, username string) err
 func SendResetEmail(cfg *config.Config, email, username, token string) error {
 	template := template.New("resetEmail.html")
 
-	template, err := template.ParseFiles("app/templates/resetEmail.html")
+	template, err := template.ParseFiles("templates/resetEmail.html")
 	if err != nil {
 		return err
 	}
