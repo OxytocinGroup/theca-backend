@@ -29,9 +29,10 @@ deps-cleancache: ## Clear cache in Go module
 swag: ## Generate swagger docs
 	swag init -g cmd/api/main.go -o ./cmd/api/docs
 
-docker-build: ## Build a Docker Image
+docker-bcp: ## Build a Docker Image
 	docker build -t oxeee/theca-back .
 	docker compose up -d
+	docker push oxeee/theca-back
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

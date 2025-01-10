@@ -151,7 +151,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("session_id", sessionID, 3600*24, "/", "", false, true)
+	c.SetCookie("session_id", sessionID, 3600*24, "/", "", true, true)
 	c.JSON(http.StatusOK, pkg.LoginResponse{
 		Code:     http.StatusOK,
 		Message:  "Login successful",
