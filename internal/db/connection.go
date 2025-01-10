@@ -3,9 +3,10 @@ package db
 import (
 	"fmt"
 
+	"log"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 
 	config "github.com/OxytocinGroup/theca-backend/internal/config"
 	domain "github.com/OxytocinGroup/theca-backend/internal/domain"
@@ -30,8 +31,7 @@ func (g *GormDatabase) GetDB() *gorm.DB {
 
 func ConnectDatabase(cfg config.Config) Database {
     psqlInfo := fmt.Sprintf("host=%s user=%s dbname=%s port=%s password=%s sslmode=%s", cfg.DBHost, cfg.DBUser, cfg.DBName, cfg.DBPort, cfg.DBPassword, "disable")
-    log.Printf("Connecting to database with: %s", psqlInfo)
-    
+
     conn, dbErr := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{
         SkipDefaultTransaction: true,
     })
