@@ -17,13 +17,6 @@ build: ${BINARY_DIR} ## Compile the code, build Executable File
 run: ## Start application
 	$(GOCMD) run ./cmd/api
 
-test: ## Run tests
-	$(GOCMD) test ./... -cover
-
-test-coverage: ## Run tests and generate coverage file
-	$(GOCMD) test ./... -coverprofile=$(CODE_COVERAGE).out
-	$(GOCMD) tool cover -html=$(CODE_COVERAGE).out
-
 deps: ## Install dependencies
 	# go get $(go list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
 	$(GOCMD) get -u -t -d -v ./...
@@ -33,11 +26,12 @@ deps: ## Install dependencies
 deps-cleancache: ## Clear cache in Go module
 	$(GOCMD) clean -modcache
 
-wire: ## Generate wire_gen.go
-	cd internal/di && wire
-
 swag: ## Generate swagger docs
 	swag init -g cmd/api/main.go -o ./cmd/api/docs
+
+docker-build: ## Build a Docker Image
+	docker build -t oxeee/theca-back .
+	docker compose up -d
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

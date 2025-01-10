@@ -32,3 +32,6 @@ go.work
 
 # Code Coverage
 code-coverage.*
+
+# Logs
+logs/

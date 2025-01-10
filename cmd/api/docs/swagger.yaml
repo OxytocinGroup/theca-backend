@@ -1,61 +1,463 @@
 definitions:
-  domain.ErrorResponse:
+  domain.Bookmark:
+    properties:
+      icon_url:
+        type: string
+      id:
+        type: integer
+      show_text:
+        type: boolean
+      title:
+        type: string
+      url:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  pkg.LoginResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+      username:
+        type: string
+    type: object
+  pkg.Response:
     properties:
       code:
         type: integer
       message:
         type: string
     type: object
-  domain.SuccessResponse:
+  requests.EmailVerifyRequest:
     properties:
-      message:
+      code:
+        minLength: 6
         type: string
+    required:
+    - code
     type: object
-  domain.UserRequest:
+  requests.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  requests.RegisterRequest:
     properties:
       email:
         type: string
       password:
         minLength: 8
         type: string
+      username:
+        minLength: 3
+        type: string
     required:
     - email
     - password
+    - username
+    type: object
+  requests.RequestPasswordReset:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  requests.RequestVerificationToken:
+    properties:
+      username:
+        minLength: 3
+        type: string
+    required:
+    - username
+    type: object
+  requests.ResetPassword:
+    properties:
+      password:
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - token
     type: object
 info:
   contact: {}
 paths:
-  /register:
+  /api/bookmarks/create:
     post:
       consumes:
       - application/json
+      description: This endpoint allows an authenticated user to create a new bookmark.
       parameters:
-      - description: User
+      - description: Bookmark details
         in: body
-        name: user
+        name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UserRequest'
+          $ref: '#/definitions/domain.Bookmark'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Bookmark created successfully
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "401":
+          description: Unauthorized - User not authenticated
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Create a bookmark
+      tags:
+      - Bookmark
+  /api/bookmarks/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific bookmark associated with the user based on the
+        bookmark ID
+      parameters:
+      - description: Request body with the bookmark ID to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Bookmark'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted the bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request, invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "403":
+          description: Forbidden, the user does not have permission to delete this
+            bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Delete a bookmark by ID
+      tags:
+      - Bookmark
+  /api/bookmarks/get:
+    get:
+      description: Fetch all bookmarks associated with the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bookmarks
+          schema:
+            items:
+              $ref: '#/definitions/domain.Bookmark'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Get bookmarks by user ID
+      tags:
+      - Bookmark
+  /api/bookmarks/update:
+    post:
+      consumes:
+      - application/json
+      description: Update a specific bookmark associated with the user based on the
+        bookmark ID
+      parameters:
+      - description: Request body with the bookmark ID to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Bookmark'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated the bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request, invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "403":
+          description: Forbidden, the user does not have permission to update this
+            bookmark
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      security:
+      - CookieAuth: []
+      summary: Update a bookmark by ID
+      tags:
+      - Bookmark
+  /api/user/logout:
+    delete:
+      consumes:
+      - application/json
+      description: This endpoint allows a user to log out by deleting all active sessions
+        associated with the user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      summary: User logout
+      tags:
+      - User
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows a user to log in using their username and
+        password. If already logged in, a conflict response is returned.
+      parameters:
+      - description: Username and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/pkg.LoginResponse'
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "401":
+          description: Unauthorized - Invalid username or password or not verified
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "409":
+          description: Conflict - User already logged in
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      summary: User login
+      tags:
+      - User
+  /user/password-reset/request:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows a user to request a password reset by providing
+        their email.
+      parameters:
+      - description: User email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RequestPasswordReset'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset email sent
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "404":
+          description: Email not found
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      summary: Request a password reset
+      tags:
+      - User
+  /user/password-reset/reset:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows a user to reset their password by providing
+        a valid reset token and a new password.
+      parameters:
+      - description: Reset token and new password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ResetPassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "404":
+          description: Reset token not found or expired
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      summary: Reset user password
+      tags:
+      - User
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: Username, email and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RegisterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.SuccessResponse'
+            $ref: '#/definitions/pkg.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/pkg.Response'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/pkg.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/pkg.Response'
       summary: Register a new user
       tags:
-      - users
+      - User
+  /user/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint allows a user to verify their email address by providing
+        the email and verification code.
+      parameters:
+      - description: verification code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.EmailVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email verified successfully
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "404":
+          description: Verification code not found
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      summary: Verify email address
+      tags:
+      - User
+  /user/verify-email/request:
+    post:
+      consumes:
+      - application/json
+      description: Resends a verification token for the provided username.
+      parameters:
+      - description: Request body containing the username
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/requests.RequestVerificationToken'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification token resent successfully
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "400":
+          description: Bad request, invalid input
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "403":
+          description: User has verified email
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/pkg.Response'
+      summary: Resend Verification Token
+      tags:
+      - User
 swagger: "2.0"
