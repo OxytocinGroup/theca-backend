@@ -23,7 +23,7 @@ func NewDevDeps(deps DevDeps) DepsProvider {
 }
 
 func (d *DevDeps) GetConfig() config.Config {
-    return d.Config
+	return d.Config
 }
 
 func (d *DevDeps) Database() *gorm.DB {
@@ -50,8 +50,8 @@ func (d *DevDeps) BookmarkRepository() repository.BookmarkRepository {
 	return repository.NewBookmarkRepository(d.Db)
 }
 
-func (d *DevDeps) BookmarkUseCase(bookmarkRepo repository.BookmarkRepository, log logger.Logger) usecase.BookmarkUseCase {
-	return usecase.NewBookmarkUseCase(bookmarkRepo, log)
+func (d *DevDeps) BookmarkUseCase(bookmarkRepo repository.BookmarkRepository, userRepo repository.UserRepository, log logger.Logger) usecase.BookmarkUseCase {
+	return usecase.NewBookmarkUseCase(bookmarkRepo, userRepo, log)
 }
 
 func (d *DevDeps) Logger() logger.Logger {

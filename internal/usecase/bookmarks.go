@@ -21,24 +21,42 @@ type BookmarkUseCase interface {
 
 type bookmarkUseCase struct {
 	bookmarkRepo repository.BookmarkRepository
+	userRepo     repository.UserRepository
 	log          logger.Logger
 }
 
-func NewBookmarkUseCase(bookmarkRepo repository.BookmarkRepository, log logger.Logger) BookmarkUseCase {
+func NewBookmarkUseCase(bookmarkRepo repository.BookmarkRepository, userRepo repository.UserRepository, log logger.Logger) BookmarkUseCase {
 	return &bookmarkUseCase{
 		bookmarkRepo: bookmarkRepo,
+		userRepo:     userRepo,
 		log:          log,
 	}
 }
 
 func (buc *bookmarkUseCase) CreateBookmark(bookmark domain.Bookmark) pkg.Response {
+	user, err := buc.userRepo.GetByID(bookmark.UserID)
+	if err != nil {
+		buc.log.Error(context.Background(), "Create bookmark: error while get user by id", map[string]any{"error": err, "user_id": bookmark.UserID})
+		return pkg.Response{Code: http.StatusInternalServerError, Message: "Failed to get user"}
+	}
 
-	err := buc.bookmarkRepo.CreateBookmark(&bookmark)
+	if user.AmountOfBookmarks >= 25 {
+		buc.log.Info(context.Background(), "Create bookmark: limit of bookmarks for user", map[string]any{"user_id": user.ID})
+		return pkg.Response{Code: http.StatusConflict, Message: "Limit of bookmarks: 25", Error: cerr.ErrLimitOfBookmarks}
+	}
+
+	user.AmountOfBookmarks += 1
+	if err := buc.userRepo.Update(&user); err != nil {
+		buc.log.Error(context.Background(), "Create bookmark: failed to update user", map[string]any{"error": err})
+		return pkg.Response{Code: http.StatusInternalServerError, Message: "Failed to update user"}
+	}
+
+	err = buc.bookmarkRepo.CreateBookmark(&bookmark)
 	if err != nil {
 		buc.log.Error(context.Background(), "Create bookmark: failed to create bookmark", map[string]any{"error": err})
 		return pkg.Response{
 			Code:    500,
-			Message: "failed to create bookmark",
+			Message: "Failed to create bookmark",
 		}
 	}
 
@@ -82,6 +100,18 @@ func (buc *bookmarkUseCase) GetBookmarksByUser(userID uint) ([]domain.Bookmark, 
 }
 
 func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response {
+	user, err := buc.userRepo.GetByID(userID)
+	if err != nil {
+		buc.log.Error(context.Background(), "Delete bookmark: error while get user by id", map[string]any{"error": err, "user_id": userID})
+		return pkg.Response{Code: http.StatusInternalServerError, Message: "Failed to get user"}
+	}
+
+	user.AmountOfBookmarks -= 1
+	if err := buc.userRepo.Update(&user); err != nil {
+		buc.log.Error(context.Background(), "Delete bookmark: failed to update user", map[string]any{"error": err})
+		return pkg.Response{Code: http.StatusInternalServerError, Message: "Failed to update user"}
+	}
+
 	bookmarkOwner, err := buc.bookmarkRepo.GetBookmarkOwner(bookmarkID)
 	if err != nil {
 		buc.log.Error(context.Background(), "Delete bookmark: failed to get bookmark owner", map[string]any{
@@ -121,7 +151,7 @@ func (buc *bookmarkUseCase) DeleteBookmark(userID, bookmarkID uint) pkg.Response
 
 	buc.log.Info(context.Background(), "Delete bookmark: success", map[string]any{})
 	return pkg.Response{
-		Code: 200,
+		Code:    200,
 		Message: "Bookmark deleted",
 	}
 }

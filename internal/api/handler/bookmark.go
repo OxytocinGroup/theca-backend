@@ -33,14 +33,15 @@ func NewBookmarkHandler(usecase usecase.BookmarkUseCase, log logger.Logger) *Boo
 // @Success 201 {object} pkg.Response "Bookmark created successfully"
 // @Failure 400 {object} pkg.Response "Bad request - Invalid input"
 // @Failure 401 {object} pkg.Response "Unauthorized - User not authenticated"
+// @Failure 409 {object} pkg.Response "Limit of bookmarks"
 // @Failure 500 {object} pkg.Response "Internal server error"
 // @Security CookieAuth
 // @Router /api/bookmarks/create [post]
 func (bh *BookmarkHandler) CreateBookmark(c *gin.Context) {
 	var bookmark domain.Bookmark
 
-	userID, _ := c.Get("user_id")
-	bookmark.UserID = userID.(uint)
+	userID := c.GetUint("user_id")
+	bookmark.UserID = userID
 	if err := c.ShouldBindJSON(&bookmark); err != nil {
 		bh.Logger.Info(c, "bad request", map[string]any{"error": err})
 		c.JSON(http.StatusBadRequest, pkg.Response{Code: http.StatusBadRequest, Message: ("Bad request " + err.Error()), Error: cerr.ErrInvalidBody})

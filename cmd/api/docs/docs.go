@@ -63,6 +63,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/pkg.Response"
                         }
                     },
+                    "409": {
+                        "description": "Limit of bookmarks",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.Response"
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -617,6 +623,9 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "type": "integer"
+                },
+                "error": {
+                    "type": "string"
                 },
                 "message": {
                     "type": "string"

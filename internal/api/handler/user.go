@@ -104,7 +104,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 			uh.Logger.Info(context.Background(), "Login: user tryed to login when already logged", map[string]any{"user_id": userID})
 			c.JSON(http.StatusConflict, pkg.Response{
 				Code:    http.StatusConflict,
-				Message: "user already logged in",
+				Message: "User already logged in",
 				Error:   cerr.ErrUserLogined,
 			})
 			return

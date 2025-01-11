@@ -18,7 +18,7 @@ type DepsProvider interface {
 
 	UserUseCase(repository.UserRepository, repository.SessionRepository, config.Config, logger.Logger) usecase.UserUseCase
 	SessionUseCase(repository.SessionRepository, logger.Logger) usecase.SessionUseCase
-	BookmarkUseCase(repository.BookmarkRepository, logger.Logger) usecase.BookmarkUseCase
+	BookmarkUseCase(repository.BookmarkRepository, repository.UserRepository, logger.Logger) usecase.BookmarkUseCase
 
 	Logger() logger.Logger
 
@@ -35,7 +35,7 @@ func InitializeAPI(provider DepsProvider) (*http.ServerHTTP, error) {
 
 	userUC := provider.UserUseCase(userRepo, sessionRepo, cfg, log)
 	sessionUC := provider.SessionUseCase(sessionRepo, log)
-	bookmarkUC := provider.BookmarkUseCase(bookmarkRepo, log)
+	bookmarkUC := provider.BookmarkUseCase(bookmarkRepo, userRepo, log)
 
 	userHandler := handler.NewUserHandler(userUC, sessionUC, log)
 	bookmarkHandler := handler.NewBookmarkHandler(bookmarkUC, log)
