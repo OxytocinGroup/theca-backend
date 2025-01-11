@@ -27,6 +27,8 @@ definitions:
     properties:
       code:
         type: integer
+      error:
+        type: string
       message:
         type: string
     type: object
@@ -116,6 +118,10 @@ paths:
             $ref: '#/definitions/pkg.Response'
         "401":
           description: Unauthorized - User not authenticated
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "409":
+          description: Limit of bookmarks
           schema:
             $ref: '#/definitions/pkg.Response'
         "500":
