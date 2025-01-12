@@ -269,7 +269,7 @@ func (uh *UserHandler) ResetPassword(c *gin.Context) {
 // @Param request body requests.RequestVerificationToken true "Request body containing the username"
 // @Success 200 {object} pkg.Response "Verification token resent successfully"
 // @Failure 400 {object} pkg.Response "Bad request, invalid input"
-// @Failure 403 {object} pkg.Response "User has verified email"
+// @Failure 409 {object} pkg.Response "User has verified email"
 // @Failure 404 {object} pkg.Response "User not found"
 // @Failure 500 {object} pkg.Response "Internal server error"
 // @Router /user/verify-email/request [post]
@@ -282,5 +282,21 @@ func (uh *UserHandler) RequestVerificationToken(c *gin.Context) {
 	}
 
 	resp := uh.UserUseCase.ResendVerificationToken(req.Username)
+	c.JSON(resp.Code, resp)
+}
+
+// GetUserInfo godoc
+// @Summary Give user info
+// @Description Gives info about the user by finding him by session
+// @Tags User
+// @Produce json
+// @Success 200 {object} pkg.UserInfoResponse "User inforamiton got successfully"
+// @Failure 401 {object} pkg.UserInfoResponse "Session isn't valid"
+// @Failure 403 {object} pkg.UserInfoResponse "Session cookie didn't found"
+// @Failure 404 {object} pkg.UserInfoResponse "User not found"
+// @Router /api/user/get-info [post]
+func (uh *UserHandler) GetUserInfo(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	resp := uh.UserUseCase.GetUserInfo(userID)
 	c.JSON(resp.Code, resp)
 }

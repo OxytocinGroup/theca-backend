@@ -215,6 +215,44 @@
                 }
             }
         },
+        "/api/user/get-info": {
+            "post": {
+                "description": "Gives info about the user by finding him by session",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Give user info",
+                "responses": {
+                    "200": {
+                        "description": "User inforamiton got successfully",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.UserInfoResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Session isn't valid",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.UserInfoResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Session cookie didn't found",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.UserInfoResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/pkg.UserInfoResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user/logout": {
             "delete": {
                 "description": "This endpoint allows a user to log out by deleting all active sessions associated with the user.",
@@ -547,14 +585,14 @@
                             "$ref": "#/definitions/pkg.Response"
                         }
                     },
-                    "403": {
-                        "description": "User has verified email",
+                    "404": {
+                        "description": "User not found",
                         "schema": {
                             "$ref": "#/definitions/pkg.Response"
                         }
                     },
-                    "404": {
-                        "description": "User not found",
+                    "409": {
+                        "description": "User has verified email",
                         "schema": {
                             "$ref": "#/definitions/pkg.Response"
                         }
@@ -617,6 +655,23 @@
                     "type": "string"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "pkg.UserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

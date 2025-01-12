@@ -12,14 +12,14 @@ func AuthMiddleware(sessionUC usecase.SessionUseCase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sessionID, err := c.Cookie("session_id")
 		if err != nil {
-			c.JSON(http.StatusForbidden, gin.H{"error": cerr.ErrMissingCookie,})
+			c.JSON(http.StatusForbidden, gin.H{"error": cerr.ErrMissingCookie})
 			c.Abort()
 			return
 		}
 
 		userID, err := sessionUC.ValidateSession(sessionID)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": cerr.ErrInvalidSession, "details": err.Error()})
 			c.Abort()
 			return
 		}

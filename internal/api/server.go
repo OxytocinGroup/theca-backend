@@ -46,6 +46,7 @@ func NewServerHTTP(userHandler *handler.UserHandler, bookmarkHandler *handler.Bo
 	// api.POST("/change-pass", userHandler.ChangePass)
 
 	api.DELETE("/user/logout", userHandler.Logout)
+	api.GET("/user/get-info", userHandler.GetUserInfo)
 	api.POST("/bookmarks/create", bookmarkHandler.CreateBookmark)
 	api.GET("/bookmarks/get", bookmarkHandler.GetBookmarks)
 	api.DELETE("/bookmarks/delete", bookmarkHandler.DeleteBookmark)

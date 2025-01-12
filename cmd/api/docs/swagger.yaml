@@ -32,6 +32,17 @@ definitions:
       message:
         type: string
     type: object
+  pkg.UserInfoResponse:
+    properties:
+      code:
+        type: integer
+      email:
+        type: string
+      message:
+        type: string
+      username:
+        type: string
+    type: object
   requests.EmailVerifyRequest:
     properties:
       code:
@@ -230,6 +241,31 @@ paths:
       summary: Update a bookmark by ID
       tags:
       - Bookmark
+  /api/user/get-info:
+    post:
+      description: Gives info about the user by finding him by session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User inforamiton got successfully
+          schema:
+            $ref: '#/definitions/pkg.UserInfoResponse'
+        "401":
+          description: Session isn't valid
+          schema:
+            $ref: '#/definitions/pkg.UserInfoResponse'
+        "403":
+          description: Session cookie didn't found
+          schema:
+            $ref: '#/definitions/pkg.UserInfoResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/pkg.UserInfoResponse'
+      summary: Give user info
+      tags:
+      - User
   /api/user/logout:
     delete:
       consumes:
@@ -451,12 +487,12 @@ paths:
           description: Bad request, invalid input
           schema:
             $ref: '#/definitions/pkg.Response'
-        "403":
-          description: User has verified email
-          schema:
-            $ref: '#/definitions/pkg.Response'
         "404":
           description: User not found
+          schema:
+            $ref: '#/definitions/pkg.Response'
+        "409":
+          description: User has verified email
           schema:
             $ref: '#/definitions/pkg.Response'
         "500":

@@ -30,6 +30,7 @@ type UserUseCase interface {
 	GetResetPassword(email string) pkg.Response
 	ResetPassword(token, password string) pkg.Response
 	ResendVerificationToken(username string) pkg.Response
+	GetUserInfo(userID uint) pkg.UserInfoResponse
 }
 
 type userUseCase struct {
@@ -399,4 +400,14 @@ func (uuc *userUseCase) ResendVerificationToken(username string) pkg.Response {
 		Code:    http.StatusOK,
 		Message: "Email sent",
 	}
+}
+
+func (uuc *userUseCase) GetUserInfo(userID uint) pkg.UserInfoResponse {
+	user, err := uuc.userRepo.GetByID(userID)
+	if err != nil {
+		uuc.log.Warn(context.Background(), "Get user info: user not found", map[string]any{"error": err, "user_id": userID})
+		return pkg.UserInfoResponse{Code: 404, Message: "User not found"}
+	}
+
+	return pkg.UserInfoResponse{Code: 200, Message: "Successful", Email: user.Email, Username: user.Username}
 }

@@ -13,4 +13,5 @@ const (
 	BelongsToAnotherUser = "BELONGS_TO_ANOTHER_USER"
 	ErrMissingCookie     = "MISSING_SESSION"
 	ErrLimitOfBookmarks  = "BOOKMARKS_LIMIT"
+	ErrInvalidSession    = "INVALID_SESSION"
 )
