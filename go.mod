@@ -21,7 +21,15 @@ require github.com/resend/resend-go/v2 v2.13.0
 
 require gopkg.in/natefinch/lumberjack.v2 v2.2.1
 
-require github.com/gin-contrib/cors v1.7.3
+require (
+	github.com/gin-contrib/cors v1.7.3
+	github.com/go-co-op/gocron v1.37.0
+)
+
+require (
+	github.com/robfig/cron/v3 v3.0.1 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+)
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect

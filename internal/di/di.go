@@ -1,11 +1,14 @@
 package di
 
 import (
+	"fmt"
+
 	http "github.com/OxytocinGroup/theca-backend/internal/api"
 	"github.com/OxytocinGroup/theca-backend/internal/api/handler"
 	"github.com/OxytocinGroup/theca-backend/internal/config"
 	"github.com/OxytocinGroup/theca-backend/internal/repository"
 	"github.com/OxytocinGroup/theca-backend/internal/usecase"
+	"github.com/OxytocinGroup/theca-backend/pkg/cron"
 	"github.com/OxytocinGroup/theca-backend/pkg/logger"
 	"gorm.io/gorm"
 )
@@ -32,6 +35,9 @@ func InitializeAPI(provider DepsProvider) (*http.ServerHTTP, error) {
 	userRepo := provider.UserRepository()
 	sessionRepo := provider.SessionRepository()
 	bookmarkRepo := provider.BookmarkRepository()
+
+	fmt.Println("init scheduler")
+	cron.InitScheduler(&cfg, log, sessionRepo)
 
 	userUC := provider.UserUseCase(userRepo, sessionRepo, cfg, log)
 	sessionUC := provider.SessionUseCase(sessionRepo, log)

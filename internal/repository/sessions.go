@@ -12,6 +12,7 @@ type SessionRepository interface {
 	GetSessionByID(sessionID string) (domain.Session, error)
 	DeleteSessionByID(sessionID string) error
 	DeleteAllSessions(userID uint) error
+	GetAllSessions() ([]domain.Session, error)
 }
 
 type sessionDatabase struct {
@@ -43,4 +44,10 @@ func (sdb *sessionDatabase) DeleteSessionByID(sessionID string) error {
 
 func (sdb *sessionDatabase) DeleteAllSessions(userID uint) error {
 	return sdb.DB.Model(&domain.Session{}).Where("user_id = ?", userID).Delete(&domain.Session{}).Error
+}
+
+func (db *sessionDatabase) GetAllSessions() ([]domain.Session, error) {
+	var sessions []domain.Session
+	err := db.DB.Model(&domain.Session{}).Find(&sessions).Error
+	return sessions, err
 }

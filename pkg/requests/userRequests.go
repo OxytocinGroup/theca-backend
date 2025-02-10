@@ -3,7 +3,7 @@ package requests
 type RegisterRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Username string `json:"username" binding:"required,min=3"`
-	Password string `json:"password" binding:"required,min=8"`
+	Password string `json:"password" binding:"required,min=6"`
 }
 
 type EmailVerifyRequest struct {
@@ -11,8 +11,8 @@ type EmailVerifyRequest struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required,min=3"`
+	Password string `json:"password" binding:"required,min=6"`
 }
 
 type ChangePasswordRequest struct {

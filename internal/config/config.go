@@ -21,10 +21,12 @@ type Config struct {
 	Environment string `mapstructure:"ENVIRONMENT"`
 
 	AppURL string `mapstructure:"APP_URL"`
+
+	ClearTime string `mapstructure:"CLEAR_TIME"`
 }
 
 var envs = []string{
-	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_API", "ENVIRONMENT", "LOG_LEVEL", "APP_URL",
+	"DB_HOST", "DB_NAME", "DB_USER", "DB_PORT", "DB_PASSWORD", "SMTP_API", "ENVIRONMENT", "LOG_LEVEL", "APP_URL", "CLEAR_TIME",
 }
 
 func LoadConfig() (Config, error) {

@@ -140,7 +140,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	}
 
 	sessionID := uuid.New().String()
-	if err := uh.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(24*time.Hour)); err != nil {
+	if err := uh.SessionUseCase.CreateSession(sessionID, user.ID, time.Now().Add(90*24*time.Hour)); err != nil {
 		uh.Logger.Error(context.Background(), "Login: failed to create session", map[string]any{
 			"error": err,
 		})
