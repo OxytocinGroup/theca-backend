@@ -14,4 +14,5 @@ const (
 	ErrMissingCookie     = "MISSING_SESSION"
 	ErrLimitOfBookmarks  = "BOOKMARKS_LIMIT"
 	ErrInvalidSession    = "INVALID_SESSION"
+	ErrInvalidUser = "INVALID_USER"
 )

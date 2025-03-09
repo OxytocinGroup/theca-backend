@@ -186,6 +186,7 @@ func (uuc *userUseCase) Auth(username, password string) (*domain.User, pkg.Respo
 		return nil, pkg.Response{
 			Code:    http.StatusNotFound,
 			Message: "Not found user by username",
+			Error:   cerr.ErrInvalidUser,
 		}
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
