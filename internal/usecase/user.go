@@ -50,10 +50,11 @@ func NewUserUseCase(userRepo repository.UserRepository, sessionRepo repository.S
 }
 
 func (uuc *userUseCase) Register(email, password, username string) pkg.Response {
-	var user domain.User
-	user.Email = email
-	user.Password = password
-	user.Username = username
+	var user domain.User = domain.User{
+		Email:    email,
+		Password: password,
+		Username: username,
+	}
 
 	var emailExists, usernameExists bool
 	var emailError, usernameError error
